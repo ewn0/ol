@@ -405,14 +405,11 @@ p  { font-size: 10px; line-height: 1.9; }
 }
 
 .album-title {
-  font-size: 10px;
+  font-size: 11px;
   color: var(--yellow);
+  margin-top: 4px;
   margin-bottom: 4px;
 }
-
-.album-caption {
-  font-size: 8px;
-  color: var(--cyan);
   line-height: 1.5;
 }
 
