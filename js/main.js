@@ -165,6 +165,54 @@ const Game = (() => {
     s.appendChild(hint);
   }
 
+  /* --- Générateur d'illustrations BD inter-niveaux --- */
+  const BdDraw = {
+    draw(ctx, id, w, h) {
+      const scale = Math.max(2, Math.floor(Math.min(w / 70, h / 40)));
+      ctx.fillStyle = '#100e26';
+      ctx.fillRect(0, 0, w, h);
+
+      if (id === 1) {
+        ctx.fillStyle = '#1c3a24'; ctx.fillRect(0, h * 0.6, w, h * 0.4);
+        Sprites.drawCentered(ctx, 'kassos', w * 0.3, h * 0.5, scale);
+        Sprites.drawCentered(ctx, 'player', w * 0.75, h * 0.5, scale);
+        ctx.fillStyle = '#ffd23f'; ctx.font = `${Math.round(scale * 2.8)}px monospace`;
+        ctx.fillText('♪ JUL ♪', w * 0.15, h * 0.25);
+      } else if (id === 2) {
+        ctx.fillStyle = '#232150'; ctx.fillRect(0, 0, w, h);
+        Sprites.drawCentered(ctx, 'elise', w * 0.35, h * 0.5, scale);
+        Sprites.drawCentered(ctx, 'brush', w * 0.65, h * 0.5, scale);
+        Sprites.drawCentered(ctx, 'hair', w * 0.65, h * 0.25, scale);
+      } else if (id === 3) {
+        ctx.fillStyle = '#122618'; ctx.fillRect(0, 0, w, h);
+        Sprites.drawCentered(ctx, 'lys2', w * 0.3, h * 0.55, scale);
+        Sprites.drawCentered(ctx, 'lys3', w * 0.5, h * 0.55, scale);
+        Sprites.drawCentered(ctx, 'lys2', w * 0.7, h * 0.55, scale);
+      } else if (id === 4) {
+        ctx.fillStyle = '#1b1940'; ctx.fillRect(0, 0, w, h);
+        Sprites.drawCentered(ctx, 'maki', w * 0.3, h * 0.4, scale);
+        Sprites.drawCentered(ctx, 'nigiri', w * 0.6, h * 0.5, scale);
+        ctx.strokeStyle = '#35d6ed'; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.moveTo(w * 0.2, h * 0.7); ctx.lineTo(w * 0.75, h * 0.2); ctx.stroke();
+      } else if (id === 5) {
+        ctx.fillStyle = '#1d1b46'; ctx.fillRect(0, 0, w, h);
+        ctx.fillStyle = '#232150'; ctx.fillRect(0, h * 0.7, w, h * 0.3);
+        Sprites.drawCentered(ctx, 'player', w * 0.3, h * 0.6, scale);
+        Sprites.drawCentered(ctx, 'beffroi', w * 0.8, h * 0.5, scale * 0.8);
+      } else if (id === 6) {
+        ctx.fillStyle = '#1a183d'; ctx.fillRect(0, 0, w, h);
+        ctx.fillStyle = '#8b5a2b'; ctx.fillRect(w * 0.25, h * 0.4, w * 0.2, h * 0.35);
+        ctx.fillStyle = '#a05a2c'; ctx.fillRect(w * 0.5, h * 0.45, w * 0.25, h * 0.3);
+        Sprites.drawCentered(ctx, 'valise', w * 0.35, h * 0.3, scale);
+      } else {
+        ctx.fillStyle = '#100e26'; ctx.fillRect(0, 0, w, h);
+        Sprites.drawCentered(ctx, 'player', w * 0.4, h * 0.5, scale);
+        Sprites.drawCentered(ctx, 'elise', w * 0.6, h * 0.5, scale);
+        Sprites.drawCentered(ctx, 'valise', w * 0.25, h * 0.6, scale);
+      }
+    }
+  };
+
   /* ---------------- Intro d'un niveau ---------------- */
 
   function showIntro(index) {
@@ -182,14 +230,19 @@ const Game = (() => {
     h.textContent = lvl.title;
     s.appendChild(h);
 
-    /* Vignette de BD inter-niveau */
+    /* Vignette de BD inter-niveau avec Canvas Pixel Art */
     const bdBox = document.createElement('div');
     bdBox.className = 'bd-box';
     bdBox.innerHTML = `
       <div class="bd-badge">ÉPISODE ${lvl.id} — BD EXCLUSIVE</div>
+      <div class="bd-canvas-box"></div>
       <div class="bd-caption">« ${lvl.bdCaption || lvl.title} »</div>
     `;
     s.appendChild(bdBox);
+
+    const cvBox = bdBox.querySelector('.bd-canvas-box');
+    const cvApi = makeCanvas(cvBox);
+    BdDraw.draw(cvApi.ctx, lvl.id, cvApi.w, cvApi.h);
 
     const box = document.createElement('div');
     box.className = 'panel';
