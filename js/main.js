@@ -10,7 +10,7 @@ const TEXTES = {
   titre:        'OPÉRATION\nLILLE',
   sousTitre:    'Un jeu en 6 niveaux',
   jauge:        'Chargement du déménagement',   // libellé de la jauge globale
-  accroche:     "Objectif : te convaincre de me faire venir à Lille.\nAucune pression. Enfin si, un peu.",
+  accroche:     "Objectif : me faire venir à Lille.\nAucune pression. Enfin si, un peu.",
   start:        'START',
   commencer:    'COMMENCER',
   continuer:    'CONTINUER',
