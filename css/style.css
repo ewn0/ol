@@ -1,0 +1,426 @@
+/* ============================================================
+   OPÉRATION LILLE — feuille de style rétro/arcade
+   Pensé mobile-first (portrait), agrandi sur grand écran.
+   ============================================================ */
+
+@font-face {
+  font-family: 'PixelFont';
+  src: url('../fonts/pressstart2p.woff2') format('woff2');
+  font-display: swap;
+}
+
+:root {
+  --bg:        #14122b;
+  --bg-deep:   #0c0b1c;
+  --panel:     #262450;
+  --panel-alt: #322f66;
+  --ink:       #f4f4f8;
+  --pink:      #ff4d6d;
+  --yellow:    #ffd23f;
+  --green:     #3ddc84;
+  --cyan:      #35d6ed;
+  --purple:    #8f5cff;
+  --shadow:    #07061a;
+
+  --border: 4px;
+  --font: 'PixelFont', 'Courier New', monospace;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg-deep);
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: 14px;
+  line-height: 1.7;
+  -webkit-font-smoothing: none;
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  overscroll-behavior: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+img, canvas { image-rendering: pixelated; }
+
+/* ---------- Enveloppe ---------- */
+
+#app {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  max-width: 560px;
+  margin: 0 auto;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  padding: calc(env(safe-area-inset-top) + 8px) 10px calc(env(safe-area-inset-bottom) + 8px);
+  overflow: hidden;
+}
+
+.hidden { display: none !important; }
+
+/* ---------- HUD / jauge globale ---------- */
+
+#hud {
+  flex: 0 0 auto;
+  border: var(--border) solid var(--ink);
+  background: var(--panel);
+  box-shadow: 4px 4px 0 var(--shadow);
+  padding: 8px 8px 10px;
+  margin-bottom: 10px;
+}
+
+.hud-line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 8px;
+  margin-bottom: 7px;
+}
+
+.hud-label { color: var(--cyan); letter-spacing: .5px; }
+.hud-pct   { color: var(--yellow); font-size: 11px; }
+
+.segbar {
+  display: flex;
+  gap: 3px;
+  height: 16px;
+}
+
+.segbar i {
+  flex: 1;
+  background: #171533;
+  box-shadow: inset 0 0 0 2px #3c3980;
+  transition: background .12s steps(2);
+}
+.segbar i.on   { background: var(--green); box-shadow: inset 0 0 0 2px #b9ffd8; }
+.segbar i.full { background: var(--yellow); box-shadow: inset 0 0 0 2px #fff3b0; }
+
+/* ---------- Scène ---------- */
+
+#stage {
+  flex: 1 1 auto;
+  position: relative;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.scene {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  animation: pop .22s steps(3);
+}
+
+@keyframes pop { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+.panel {
+  border: var(--border) solid var(--ink);
+  background: var(--panel);
+  box-shadow: 5px 5px 0 var(--shadow);
+  padding: 14px;
+}
+
+.center-col {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+  text-align: center;
+}
+
+/* ---------- Typo ---------- */
+
+h1 { font-size: 20px; line-height: 1.5; color: var(--yellow); text-shadow: 3px 3px 0 var(--shadow); }
+h2 { font-size: 13px; color: var(--pink); text-shadow: 2px 2px 0 var(--shadow); }
+p  { font-size: 10px; line-height: 1.9; }
+
+.muted   { color: #a5a1d8; font-size: 9px; }
+.tag     { color: var(--cyan); font-size: 8px; letter-spacing: 1px; }
+.blink   { animation: blink 1s steps(2, start) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+
+/* ---------- Boutons arcade ---------- */
+
+.btn {
+  font-family: var(--font);
+  font-size: 11px;
+  color: var(--bg-deep);
+  background: var(--yellow);
+  border: var(--border) solid var(--ink);
+  box-shadow: 5px 5px 0 var(--shadow);
+  padding: 14px 18px;
+  min-height: 52px;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform .05s steps(1), box-shadow .05s steps(1);
+}
+.btn:active {
+  transform: translate(5px, 5px);
+  box-shadow: 0 0 0 var(--shadow);
+}
+.btn.alt   { background: var(--cyan); }
+.btn.ghost { background: var(--panel-alt); color: var(--ink); }
+.btn.big   { font-size: 14px; padding: 18px 26px; width: 100%; max-width: 320px; }
+
+#sound-toggle {
+  position: absolute;
+  top: calc(env(safe-area-inset-top) + 4px);
+  right: 4px;
+  z-index: 40;
+  width: 34px; height: 34px;
+  font-family: var(--font);
+  font-size: 13px;
+  color: var(--ink);
+  background: transparent;
+  border: 2px solid #4a4790;
+  cursor: pointer;
+  opacity: .75;
+}
+#sound-toggle.off { color: #6f6bb0; text-decoration: line-through; }
+
+/* ---------- Écran titre ---------- */
+
+.title-logo {
+  font-size: clamp(18px, 7.5vw, 30px);
+  white-space: pre-line;
+  line-height: 1.35;
+  color: var(--pink);
+  text-shadow: 4px 4px 0 var(--shadow), 0 0 0 var(--purple);
+  animation: float 2.4s steps(4) infinite alternate;
+}
+@keyframes float { to { transform: translateY(-6px); } }
+
+/* ---------- Zone de jeu générique ---------- */
+
+.play {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.playfield {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  border: var(--border) solid var(--ink);
+  background: #100e26;
+  box-shadow: 5px 5px 0 var(--shadow);
+  overflow: hidden;
+}
+.playfield canvas { display: block; width: 100%; height: 100%; }
+
+.statusbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 9px;
+  color: var(--cyan);
+  padding: 0 2px;
+}
+.statusbar b { color: var(--yellow); }
+
+/* Barre de jauge réutilisable (volume, croissance...) */
+.meter {
+  height: 20px;
+  border: 3px solid var(--ink);
+  background: #171533;
+  box-shadow: 3px 3px 0 var(--shadow);
+  overflow: hidden;
+}
+.meter > span {
+  display: block;
+  height: 100%;
+  width: 0%;
+  background: var(--green);
+  transition: width .08s linear, background .2s steps(2);
+}
+.meter.warn  > span { background: var(--yellow); }
+.meter.hot   > span { background: var(--pink); }
+
+/* Bulles de texte flottantes pendant les niveaux */
+.floater {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 9px;
+  color: var(--yellow);
+  background: rgba(12,11,28,.85);
+  border: 2px solid var(--ink);
+  padding: 5px 8px;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: floatUp 1.9s steps(12) forwards;
+  z-index: 5;
+}
+@keyframes floatUp {
+  0%   { opacity: 1; }
+  80%  { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -34px); }
+}
+
+/* ---------- Secousse d'échec ---------- */
+
+.shake { animation: shake .38s steps(2) 2; }
+@keyframes shake {
+  0%,100% { transform: translate(0,0); }
+  25%     { transform: translate(-6px, 3px); }
+  50%     { transform: translate(6px, -3px); }
+  75%     { transform: translate(-4px, -3px); }
+}
+
+/* ---------- Transition entre niveaux ---------- */
+
+#wipe {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: var(--bg-deep);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px;
+}
+#wipe.on { display: flex; animation: wipeIn .18s steps(4); }
+#wipe .wipe-text { font-size: 14px; color: var(--green); text-shadow: 3px 3px 0 #003c1c; }
+@keyframes wipeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* ---------- Scanlines CRT ---------- */
+
+#scanlines {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(0,0,0,.16) 0px,
+    rgba(0,0,0,.16) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  mix-blend-mode: multiply;
+}
+
+/* ---------- Niveau 3 : les lys ---------- */
+
+.lys-grid {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.lys {
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  padding: 6px;
+  border: 3px solid #4a4790;
+  background: #100e26;
+  cursor: pointer;
+  touch-action: none;
+}
+.lys.active { border-color: var(--cyan); background: #16143a; }
+.lys.done   { border-color: var(--green); }
+.lys-art { width: 100%; flex: 1 1 auto; min-height: 0; }
+.lys-art canvas { display: block; width: 100%; height: 100%; }
+
+.lys .bars { width: 100%; display: flex; flex-direction: column; gap: 3px; }
+.thinbar {
+  height: 9px;
+  border: 2px solid var(--ink);
+  background: #171533;
+  overflow: hidden;
+}
+.thinbar > span { display: block; height: 100%; width: 0%; background: var(--green); }
+.thinbar.water > span { background: var(--cyan); }
+.thinbar.water.flood > span { background: var(--pink); }
+
+/* ---------- Niveau 6 : final ---------- */
+
+.final-wrap {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+#confetti {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.final-scroll {
+  position: relative;
+  z-index: 3;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 4px 2px 20px;
+}
+
+.final-msg p { font-size: 11px; line-height: 2.1; margin-bottom: 14px; text-align: left; }
+.final-msg p:last-child { margin-bottom: 0; }
+
+.final-photo {
+  display: block;
+  width: 100%;
+  max-width: 260px;
+  margin: 16px auto 0;
+  border: var(--border) solid var(--ink);
+  box-shadow: 5px 5px 0 var(--shadow);
+}
+
+.final-anim-box {
+  width: 100%;
+  height: 200px;
+  border: var(--border) solid var(--ink);
+  background: #100e26;
+  box-shadow: 5px 5px 0 var(--shadow);
+  position: relative;
+  overflow: hidden;
+  margin-top: 12px;
+  margin-bottom: 12px;
+}
+.final-anim-box canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* ---------- Écrans plus larges ---------- */
+
+@media (min-height: 720px) {
+  body { font-size: 15px; }
+  h1 { font-size: 22px; }
+  p { font-size: 11px; }
+}
