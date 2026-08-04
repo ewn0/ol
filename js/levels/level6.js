@@ -23,7 +23,7 @@ const finalPhoto = '';
 
 /* Titre et signature de l'écran final */
 const finalTitre = 'MOTIVATION : 100%';
-const finalSignature = '— fin de la démo —';
+const finalSignature = '— FIN —';
 
 
 Game.register((() => {
