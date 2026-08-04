@@ -15,7 +15,7 @@ Game.register((() => {
     combo:  ['Miam', 'Encore', 'Bien vu', 'Ça glisse', 'Chef !'],
     wasabi: ['WASABI !', 'Les yeux !', 'Ça pique', 'Mauvaise pioche'],
     kassos: ['Pas lui !', 'Il est revenu', 'Wesh', 'Il squatte encore'],
-    win:  "{X} sushis avalés.\nAddition réglée.\nOn remet ça, mais à Lille.",
+    win:  "{X} sushis avalés.\nOn remet ça bientôt.",
     lose: "{X} sushis seulement.\nLe wasabi a gagné cette manche.\nOn y retourne.",
   };
 
