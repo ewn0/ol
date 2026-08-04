@@ -34,8 +34,8 @@ const Album = (() => {
         for (let x = 0; x < w; x += 16) ctx.fillRect(x, h * 0.45 + 2, 8, h * 0.55);
 
         // 4. Personnages assis à la terrasse (dessinés sous la table)
-        Sprites.drawCentered(ctx, 'player', w * 0.28, h * 0.44, scale);
-        Sprites.drawCentered(ctx, 'elise', w * 0.72, h * 0.44, scale);
+        Sprites.drawCentered(ctx, 'player', w * 0.28, h * 0.46, scale);
+        Sprites.drawCentered(ctx, 'elise', w * 0.74, h * 0.46, scale);
 
         // 5. Table de terrasse en bois devant les personnages
         ctx.fillStyle = '#8b5a2b';
@@ -97,71 +97,72 @@ const Album = (() => {
       id: 'voiture',
       title: 'La voiture',
       draw(ctx, w, h) {
-        const scale = Math.max(2, Math.floor(w / 65));
+        const scale = Math.max(2, Math.floor(w / 70));
 
-        // 1. Ciel bleu de jour
+        // 1. Vue extérieure de jour par le pare-brise
         ctx.fillStyle = '#70d6ff';
-        ctx.fillRect(0, 0, w, h * 0.55);
+        ctx.fillRect(0, 0, w, h * 0.52);
 
         // Soleil radieux
         ctx.fillStyle = '#ffd166';
         ctx.beginPath();
-        ctx.arc(w * 0.85, h * 0.2, w * 0.09, 0, Math.PI * 2);
+        ctx.arc(w * 0.5, h * 0.18, w * 0.08, 0, Math.PI * 2);
         ctx.fill();
 
-        // Arbres & Paysage
+        // Arbres et paysage
         ctx.fillStyle = '#2ecc71';
-        ctx.fillRect(w * 0.05, h * 0.32, w * 0.25, h * 0.23);
-        ctx.fillRect(w * 0.65, h * 0.28, w * 0.25, h * 0.27);
+        ctx.fillRect(w * 0.05, h * 0.25, w * 0.22, h * 0.27);
+        ctx.fillRect(w * 0.73, h * 0.22, w * 0.22, h * 0.30);
 
-        // Route grise avec ligne jaune
-        ctx.fillStyle = '#34495e';
-        ctx.fillRect(0, h * 0.55, w, h * 0.45);
-        ctx.fillStyle = '#f1c40f';
-        ctx.fillRect(0, h * 0.78, w, scale);
+        // Route grise au milieu
+        ctx.fillStyle = '#95a5a6';
+        ctx.fillRect(w * 0.27, h * 0.35, w * 0.46, h * 0.17);
 
-        // 2. VOITURES RÉTRO EN PROFIL
-        const carW = w * 0.58;
-        const carH = h * 0.38;
-        const carX = (w - carW) / 2;
-        const carY = h * 0.42;
+        // 2. Dossiers des sièges de voiture
+        ctx.fillStyle = '#2c3e50';
+        ctx.fillRect(w * 0.18, h * 0.38, w * 0.28, h * 0.24); // Siège conducteur
+        ctx.fillRect(w * 0.54, h * 0.38, w * 0.28, h * 0.24); // Siège passager
 
-        // Carrosserie rouge
-        ctx.fillStyle = '#e74c3c';
-        ctx.fillRect(carX, carY + carH * 0.35, carW, carH * 0.45); // Bas de voiture
-        ctx.fillRect(carX + carW * 0.18, carY, carW * 0.64, carH * 0.4); // Toit
-
-        // Vitres transparentes bleues
-        ctx.fillStyle = '#aed6f1';
-        ctx.fillRect(carX + carW * 0.22, carY + carH * 0.05, carW * 0.26, carH * 0.3); // Vitre conducteur
-        ctx.fillRect(carX + carW * 0.52, carY + carH * 0.05, carW * 0.26, carH * 0.3); // Vitre passager
-
-        // Visages / Têtes des personnages vus par la fenêtre (Conducteur & Passagère)
-        ctx.fillStyle = '#141225'; // Cheveux noirs
-        ctx.fillRect(carX + carW * 0.27, carY + carH * 0.08, scale * 3.5, scale * 2.2);
-        ctx.fillStyle = '#e8b98a'; // Visage
-        ctx.fillRect(carX + carW * 0.27, carY + carH * 0.16, scale * 3.5, scale * 1.8);
-
-        ctx.fillStyle = '#7a4a24'; // Cheveux châtains
-        ctx.fillRect(carX + carW * 0.57, carY + carH * 0.08, scale * 3.5, scale * 2.2);
-        ctx.fillStyle = '#f0c6a0'; // Visage
-        ctx.fillRect(carX + carW * 0.57, carY + carH * 0.16, scale * 3.5, scale * 1.8);
-
-        // Roues
+        // Appuis-tête
         ctx.fillStyle = '#1a252f';
-        ctx.beginPath();
-        ctx.arc(carX + carW * 0.22, carY + carH * 0.8, scale * 4, 0, Math.PI * 2);
-        ctx.arc(carX + carW * 0.78, carY + carH * 0.8, scale * 4, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = '#ecf0f1';
-        ctx.beginPath();
-        ctx.arc(carX + carW * 0.22, carY + carH * 0.8, scale * 1.8, 0, Math.PI * 2);
-        ctx.arc(carX + carW * 0.78, carY + carH * 0.8, scale * 1.8, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.fillRect(w * 0.24, h * 0.32, w * 0.16, h * 0.07);
+        ctx.fillRect(w * 0.60, h * 0.32, w * 0.16, h * 0.07);
 
-        // Phare
-        ctx.fillStyle = '#f1c40f';
-        ctx.fillRect(carX + carW - 4, carY + carH * 0.42, 4, scale * 2);
+        // 3. Bustes des personnages assis dans les sièges (Masquage rigide pour couper TOUTES les jambes !)
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(0, 0, w, h * 0.50); // Couper strictement à y = h * 0.50
+        ctx.clip();
+        Sprites.drawCentered(ctx, 'player', w * 0.32, h * 0.42, scale);
+        Sprites.drawCentered(ctx, 'elise', w * 0.68, h * 0.42, scale);
+        ctx.restore();
+
+        // 4. Tableau de bord (recouvre la moitié inférieure)
+        ctx.fillStyle = '#34495e';
+        ctx.fillRect(0, h * 0.50, w, h * 0.50);
+
+        // Volant devant le conducteur
+        ctx.strokeStyle = '#111111';
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.arc(w * 0.32, h * 0.56, scale * 4.8, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Écran autoradio
+        ctx.fillStyle = '#1a252f';
+        ctx.fillRect(w * 0.45, h * 0.56, w * 0.10, h * 0.18);
+        ctx.fillStyle = '#35d6ed';
+        ctx.fillRect(w * 0.46, h * 0.58, w * 0.08, h * 0.06);
+
+        // Piliers et toit du pare-brise
+        ctx.fillStyle = '#1a252f';
+        ctx.fillRect(0, 0, w * 0.10, h);
+        ctx.fillRect(w * 0.90, 0, w * 0.10, h);
+        ctx.fillRect(0, 0, w, h * 0.10);
+
+        // Rétroviseur intérieur
+        ctx.fillStyle = '#34495e';
+        ctx.fillRect(w * 0.46, h * 0.10, w * 0.08, h * 0.07);
       }
     },
     {
@@ -180,14 +181,14 @@ const Album = (() => {
         ctx.arc(w * 0.82, h * 0.18, w * 0.1, 0, Math.PI * 2);
         ctx.fill();
 
-        // 3. Immeuble de ville (S'ARRÊTE AU TROTTOIR à y = h * 0.48)
+        // 3. Immeuble de ville
         ctx.fillStyle = '#d5dbdb';
         ctx.fillRect(w * 0.1, h * 0.12, w * 0.8, h * 0.36);
         ctx.fillStyle = '#aed6f1'; // Vitrines
         ctx.fillRect(w * 0.18, h * 0.20, w * 0.28, h * 0.20);
         ctx.fillRect(w * 0.54, h * 0.20, w * 0.28, h * 0.20);
 
-        // 4. Trottoir de ville en béton (y = h * 0.48)
+        // 4. Trottoir de ville en béton
         ctx.fillStyle = '#bdc3c7';
         ctx.fillRect(0, h * 0.48, w, h * 0.35);
         ctx.fillStyle = '#7f8c8d';
@@ -199,7 +200,7 @@ const Album = (() => {
         ctx.fillStyle = '#34495e';
         ctx.fillRect(w * 0.84, h * 0.18, scale(w) * 1.5, h * 0.30);
 
-        // 6. PERSONNAGES SUR LE TROTTOIR (DESSINÉS EN PREMIER PLAN !)
+        // 6. PERSONNAGES SUR LE TROTTOIR
         Sprites.drawCentered(ctx, 'player', w * 0.44, h * 0.46, s);
         Sprites.drawCentered(ctx, 'elise', w * 0.54, h * 0.46, s);
 
