@@ -25,7 +25,7 @@ const Chat = (() => {
     }
   }
 
-  // Encodage / Décodage UTF-8 Base64 robuste (support emojis et caractères spéciaux)
+  // Encodage / Décodage UTF-8 Base64 robuste
   function utf8ToBase64(str) {
     return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (match, p1) => String.fromCharCode('0x' + p1)));
   }
@@ -39,7 +39,7 @@ const Chat = (() => {
   let messages = [];
   let currentUser = localStorage.getItem('ol_user') || null; // 'ewn' ou 'elise'
 
-  // Lit en temps réel depuis api.github.com (sans AUCUN cache CDN ou GitHub Pages)
+  // Lit en temps réel depuis api.github.com (sans AUCUN cache CDN)
   async function loadMessages() {
     const token = getBuiltinToken();
     if (!token) {
@@ -98,14 +98,14 @@ const Chat = (() => {
       date: dateStr,
     };
 
-    // 1. Récupérer le dernier état en direct de GitHub
+    // 1. Récupérer le dernier état en direct
     await loadMessages();
 
     // 2. Ajouter le nouveau message
     messages.push(newMsg);
     localStorage.setItem('ol_messages_cache', JSON.stringify(messages));
 
-    // 3. Écrire le commit en direct sur l'API GitHub
+    // 3. Écrire le commit en direct
     if (token) {
       for (const targetBranch of BRANCHES) {
         try {
@@ -152,6 +152,56 @@ const Chat = (() => {
     }
   }
 
+  // Purge TOUS les messages sur GitHub et en local
+  async function purgeAll() {
+    if (!confirm('Voulez-vous réinitialiser et effacer TOUS les mots doux ?')) return;
+
+    messages = [];
+    localStorage.removeItem('ol_messages_cache');
+
+    const token = getBuiltinToken();
+    if (token) {
+      for (const targetBranch of BRANCHES) {
+        try {
+          const apiUrl = `https://api.github.com/repos/${REPO_USER}/${REPO_NAME}/contents/${FILE_PATH}?ref=${targetBranch}`;
+          let sha = '';
+          const getRes = await fetch(apiUrl, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Accept': 'application/vnd.github.v3+json'
+            },
+            cache: 'no-store'
+          });
+
+          if (getRes.ok) {
+            const data = await getRes.json();
+            sha = data.sha;
+          }
+
+          const putUrl = `https://api.github.com/repos/${REPO_USER}/${REPO_NAME}/contents/${FILE_PATH}`;
+          const contentB64 = utf8ToBase64('[]');
+
+          await fetch(putUrl, {
+            method: 'PUT',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+              'Accept': 'application/vnd.github.v3+json'
+            },
+            body: JSON.stringify({
+              message: 'Purge des mots doux',
+              content: contentB64,
+              sha: sha || undefined,
+              branch: targetBranch
+            })
+          });
+        } catch (err) {
+          console.error('Purge error on branch ' + targetBranch, err);
+        }
+      }
+    }
+  }
+
   // Affiche la scène Boîte à Mots
   async function show() {
     if (Game.clearScene) Game.clearScene();
@@ -174,7 +224,8 @@ const Chat = (() => {
       </div>
       <div class="chat-input-row" id="chat-input-row"></div>
       <div style="display:flex;gap:8px;width:100%;max-width:380px;margin-top:10px;margin-bottom:14px">
-        <button type="button" class="btn ghost" id="chat-back" style="flex:1">◄ RETOUR</button>
+        <button type="button" class="btn ghost" id="chat-back" style="flex:2">◄ RETOUR</button>
+        <button type="button" class="btn ghost" id="chat-purge" style="flex:1;color:#ff4d6d;border-color:#ff4d6d">🗑️ PURGE</button>
       </div>
     `;
     stage.appendChild(s);
@@ -274,7 +325,7 @@ const Chat = (() => {
       renderInputRow();
     }
 
-    // Polling en direct toutes les 4 secondes via api.github.com (sans aucun cache static)
+    // Polling en direct toutes les 4 secondes via api.github.com
     const syncInterval = setInterval(async () => {
       await loadMessages();
       renderMessages();
@@ -293,6 +344,13 @@ const Chat = (() => {
     backBtn.addEventListener('pointerdown', goBack);
     backBtn.addEventListener('click', goBack);
 
+    // Bouton de Purge
+    const purgeBtn = s.querySelector('#chat-purge');
+    purgeBtn.addEventListener('click', async () => {
+      await purgeAll();
+      renderMessages();
+    });
+
     renderAll();
     await loadMessages();
     renderMessages();
@@ -302,7 +360,7 @@ const Chat = (() => {
     return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
   }
 
-  const api = { show, loadMessages };
+  const api = { show, loadMessages, purgeAll };
   window.Chat = api;
   return api;
 })();
