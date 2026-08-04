@@ -1,6 +1,6 @@
 /* ============================================================
    BOÎTE À MOTS — Chat & Lettres d'amour d'Ewan & Élise.
-   Stockage des messages dans GitHub (data/messages.json) & LocalStorage.
+   Stockage des messages en temps réel via GitHub REST API (api.github.com).
    ============================================================ */
 
 const Chat = (() => {
@@ -8,9 +8,9 @@ const Chat = (() => {
   const REPO_USER = 'ewn0';
   const REPO_NAME = 'ol';
   const FILE_PATH = 'data/messages.json';
-  const BRANCHES = ['ajouts', 'main'];
+  const BRANCHES = ['main', 'ajouts'];
 
-  // Token obfusqué exact (encodé en Base64 découpé)
+  // Token obfusqué exact
   const T_CHUNKS = [
     "Z2l0aHViX3BhdF8xMUJIQ0JKRFEwMUVBSXowZnB6RUh2X01H",
     "SHB1blI2dEJRWDJ4Z29HRGNXelN6QmNMUEw5aUg0Qms5",
@@ -25,47 +25,68 @@ const Chat = (() => {
     }
   }
 
+  // Encodage / Décodage UTF-8 Base64 robuste (support emojis et caractères spéciaux)
   function utf8ToBase64(str) {
     return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (match, p1) => String.fromCharCode('0x' + p1)));
+  }
+
+  function utf8FromBase64(b64) {
+    const cleanB64 = b64.replace(/\s/g, '');
+    const decoded = atob(cleanB64);
+    return decodeURIComponent(Array.prototype.map.call(decoded, c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
   }
 
   let messages = [];
   let currentUser = localStorage.getItem('ol_user') || null; // 'ewn' ou 'elise'
 
-  // Charge et FUSIONNE les messages depuis GitHub (branche ajouts/main) & LocalStorage sans perte
+  // Lit en temps réel depuis api.github.com (sans AUCUN cache CDN ou GitHub Pages)
   async function loadMessages() {
-    let localMsgs = [];
-    try {
-      const cached = localStorage.getItem('ol_messages_cache');
-      if (cached) localMsgs = JSON.parse(cached);
-    } catch (e) {}
-
-    let remoteMsgs = [];
-    for (const b of BRANCHES) {
-      try {
-        const url = `https://raw.githubusercontent.com/${REPO_USER}/${REPO_NAME}/${b}/${FILE_PATH}?t=${Date.now()}`;
-        const res = await fetch(url);
-        if (res.ok) {
-          remoteMsgs = await res.json();
-          break;
-        }
-      } catch (e) {}
+    const token = getBuiltinToken();
+    if (!token) {
+      loadFromLocalCache();
+      return;
     }
 
-    // Fusion des messages par ID pour conserver les messages récents locaux
-    const map = new Map();
-    [...remoteMsgs, ...localMsgs].forEach(m => {
-      if (m && m.id) map.set(m.id, m);
-    });
+    for (const b of BRANCHES) {
+      try {
+        const apiUrl = `https://api.github.com/repos/${REPO_USER}/${REPO_NAME}/contents/${FILE_PATH}?ref=${b}`;
+        const res = await fetch(apiUrl, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/vnd.github.v3+json'
+          },
+          cache: 'no-store'
+        });
 
-    messages = Array.from(map.values()).sort((a, b) => Number(a.id) - Number(b.id));
-    localStorage.setItem('ol_messages_cache', JSON.stringify(messages));
+        if (res.ok) {
+          const data = await res.json();
+          if (data.content) {
+            const rawJson = utf8FromBase64(data.content);
+            messages = JSON.parse(rawJson);
+            localStorage.setItem('ol_messages_cache', JSON.stringify(messages));
+            return;
+          }
+        }
+      } catch (e) {
+        console.warn('API read retry next branch...', e);
+      }
+    }
+
+    loadFromLocalCache();
   }
 
-  // Sauvegarde un nouveau message
+  function loadFromLocalCache() {
+    try {
+      const cached = localStorage.getItem('ol_messages_cache');
+      if (cached) messages = JSON.parse(cached);
+    } catch (e) {}
+  }
+
+  // Envoie un message directement vers l'API GitHub en temps réel
   async function sendMessage(text) {
     if (!text || !text.trim() || !currentUser) return;
 
+    const token = getBuiltinToken();
     const now = new Date();
     const dateStr = `${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
 
@@ -77,60 +98,56 @@ const Chat = (() => {
       date: dateStr,
     };
 
+    // 1. Récupérer le dernier état en direct de GitHub
+    await loadMessages();
+
+    // 2. Ajouter le nouveau message
     messages.push(newMsg);
     localStorage.setItem('ol_messages_cache', JSON.stringify(messages));
 
-    // Commit automatique vers GitHub via l'API REST
-    const token = getBuiltinToken();
+    // 3. Écrire le commit en direct sur l'API GitHub
     if (token) {
-      try {
-        await commitToGitHub(token);
-      } catch (err) {
-        console.warn('Sync GitHub automatique...', err);
-      }
-    }
-  }
+      for (const targetBranch of BRANCHES) {
+        try {
+          const apiUrl = `https://api.github.com/repos/${REPO_USER}/${REPO_NAME}/contents/${FILE_PATH}?ref=${targetBranch}`;
+          let sha = '';
+          const getRes = await fetch(apiUrl, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Accept': 'application/vnd.github.v3+json'
+            },
+            cache: 'no-store'
+          });
 
-  // Push le fichier JSON sur GitHub via l'API Contents sur la branche active
-  async function commitToGitHub(token) {
-    for (const targetBranch of BRANCHES) {
-      try {
-        const apiUrl = `https://api.github.com/repos/${REPO_USER}/${REPO_NAME}/contents/${FILE_PATH}?ref=${targetBranch}`;
-        let sha = '';
-        const getRes = await fetch(apiUrl, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Accept': 'application/vnd.github.v3+json'
+          if (getRes.ok) {
+            const data = await getRes.json();
+            sha = data.sha;
           }
-        });
-        if (getRes.ok) {
-          const data = await getRes.json();
-          sha = data.sha;
-        }
 
-        const putUrl = `https://api.github.com/repos/${REPO_USER}/${REPO_NAME}/contents/${FILE_PATH}`;
-        const contentB64 = utf8ToBase64(JSON.stringify(messages, null, 2));
-        const putRes = await fetch(putUrl, {
-          method: 'PUT',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-            'Accept': 'application/vnd.github.v3+json'
-          },
-          body: JSON.stringify({
-            message: `Nouveau mot de ${currentUser === 'ewn' ? 'Ewan' : 'Élise'}`,
-            content: contentB64,
-            sha: sha || undefined,
-            branch: targetBranch
-          })
-        });
+          const putUrl = `https://api.github.com/repos/${REPO_USER}/${REPO_NAME}/contents/${FILE_PATH}`;
+          const contentB64 = utf8ToBase64(JSON.stringify(messages, null, 2));
 
-        if (putRes.ok) {
-          console.log(`Synced message to GitHub branch ${targetBranch}!`);
-          return;
+          const putRes = await fetch(putUrl, {
+            method: 'PUT',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+              'Accept': 'application/vnd.github.v3+json'
+            },
+            body: JSON.stringify({
+              message: `Nouveau mot de ${currentUser === 'ewn' ? 'Ewan' : 'Élise'}`,
+              content: contentB64,
+              sha: sha || undefined,
+              branch: targetBranch
+            })
+          });
+
+          if (putRes.ok) {
+            console.log(`Live commit OK on branch ${targetBranch}!`);
+          }
+        } catch (err) {
+          console.error(`Live commit error on branch ${targetBranch}`, err);
         }
-      } catch (e) {
-        console.warn(`Sync fail on branch ${targetBranch}`, e);
       }
     }
   }
@@ -153,7 +170,7 @@ const Chat = (() => {
       <h2 style="color:var(--yellow);margin-bottom:6px">LA BOÎTE À MOTS 💌</h2>
       <div id="chat-user-bar" class="chat-user-bar"></div>
       <div class="chat-box" id="chat-box">
-        <div class="muted" style="text-align:center;padding:10px">Chargement des mots doux...</div>
+        <div class="muted" style="text-align:center;padding:10px">Chargement en direct...</div>
       </div>
       <div class="chat-input-row" id="chat-input-row"></div>
       <div style="display:flex;gap:8px;width:100%;max-width:380px;margin-top:10px;margin-bottom:14px">
@@ -220,7 +237,6 @@ const Chat = (() => {
         `;
         chatBox.appendChild(card);
 
-        // Dessiner le sprite d'avatar sur mini canvas
         const avBox = card.querySelector(`#avatar-${msg.id}`);
         const cvApi = makeCanvas(avBox);
         Sprites.drawCentered(cvApi.ctx, isEwn ? 'player' : 'elise', cvApi.w / 2, cvApi.h / 2, 2);
@@ -258,11 +274,11 @@ const Chat = (() => {
       renderInputRow();
     }
 
-    // Synchro automatique en direct toutes les 6 secondes
+    // Polling en direct toutes les 4 secondes via api.github.com (sans aucun cache static)
     const syncInterval = setInterval(async () => {
       await loadMessages();
       renderMessages();
-    }, 6000);
+    }, 4000);
 
     const backBtn = s.querySelector('#chat-back');
     let backFired = false;
