@@ -244,7 +244,7 @@ const Game = (() => {
     const bdBox = document.createElement('div');
     bdBox.className = 'bd-box';
     bdBox.innerHTML = `
-      <div class="bd-badge">ÉPISODE ${lvl.id} — BD EXCLUSIVE</div>
+      <div class="bd-badge">ÉPISODE ${lvl.id}</div>
       <div class="bd-canvas-box"></div>
       <div class="bd-caption">« ${lvl.bdCaption || lvl.title} »</div>
     `;
