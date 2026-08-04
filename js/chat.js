@@ -10,11 +10,11 @@ const Chat = (() => {
   const FILE_PATH = 'data/messages.json';
   const BRANCHES = ['ajouts', 'main'];
 
-  // Token obfusqué (encodé en Base64 découpé)
+  // Token obfusqué exact (encodé en Base64 découpé)
   const T_CHUNKS = [
     "Z2l0aHViX3BhdF8xMUJIQ0JKRFEwMUVBSXowZnB6RUh2X01H",
     "SHB1blI2dEJRWDJ4Z29HRGNXelN6QmNMUEw5aUg0Qms5",
-    "Rm9pTjFJcWpGNUNHMlNVSlZ0QWVqUEg="
+    "Rm9pTjFJcWpGNUNHMkM2VUpWdEFlalBI"
   ];
 
   function getBuiltinToken() {
@@ -23,6 +23,10 @@ const Chat = (() => {
     } catch (e) {
       return '';
     }
+  }
+
+  function utf8ToBase64(str) {
+    return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (match, p1) => String.fromCharCode('0x' + p1)));
   }
 
   let messages = [];
@@ -105,7 +109,7 @@ const Chat = (() => {
         }
 
         const putUrl = `https://api.github.com/repos/${REPO_USER}/${REPO_NAME}/contents/${FILE_PATH}`;
-        const contentB64 = btoa(unescape(encodeURIComponent(JSON.stringify(messages, null, 2))));
+        const contentB64 = utf8ToBase64(JSON.stringify(messages, null, 2));
         const putRes = await fetch(putUrl, {
           method: 'PUT',
           headers: {
