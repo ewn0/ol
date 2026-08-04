@@ -11,7 +11,7 @@
 const finalMessage = [
   "Mission Lille : 100% accomplie !",
   "Maintenant il va falloir me supporter.",
-  "Prépare du café, tu vas en avoir besoin",
+  "Merci d'avoir joué.",
 ];
 
 /* ------------------------------------------------------------------
