@@ -10,7 +10,7 @@ Game.register((() => {
     intro: [
       "Retour au resto : les sushis arrivent, mais ils volent.",
       "Tape sur les sushis. Pas sur le wasabi.",
-      "Et si tu vois une casquette passer : ne touche pas.",
+      "Attention a Jul il est revenu.",
     ],
     combo:  ['Miam', 'Encore', 'Bien vu', 'Ça glisse', 'Chef !'],
     wasabi: ['WASABI !', 'Les yeux !', 'Ça pique', 'Mauvaise pioche'],
