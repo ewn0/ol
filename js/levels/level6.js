@@ -10,8 +10,8 @@
 ------------------------------------------------------------------ */
 const finalMessage = [
   "Mission Lille : 100% accomplie !",
-  "Prochaine étape : emménager ensemble pour de vrai.",
-  "Prépare du café, j'arrive avec toutes mes affaires !",
+  "Maintenant il va falloir me supporter.",
+  "Prépare du café, tu vas en avoir besoin",
 ];
 
 /* ------------------------------------------------------------------
