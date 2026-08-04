@@ -12,35 +12,41 @@ const Album = (() => {
       draw(ctx, w, h) {
         const scale = Math.max(2, Math.floor(w / 70));
 
-        // Intérieur resto japonais lumineux en journée
-        ctx.fillStyle = '#f4ece1';
-        ctx.fillRect(0, 0, w, h);
-
-        // Fenêtre éclairée sur la gauche
+        // 1. Ciel bleu de jour
         ctx.fillStyle = '#70d6ff';
-        ctx.fillRect(w * 0.05, h * 0.1, w * 0.25, h * 0.35);
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(w * 0.05, h * 0.26, w * 0.25, 2);
-        ctx.fillRect(w * 0.17, h * 0.1, 2, h * 0.35);
+        ctx.fillRect(0, 0, w, h * 0.45);
 
-        // Table en bois clair
-        ctx.fillStyle = '#b8860b';
-        ctx.fillRect(w * 0.15, h * 0.58, w * 0.7, h * 0.32);
-        ctx.fillStyle = '#d2b48c';
-        ctx.fillRect(w * 0.15, h * 0.58, w * 0.7, 4);
+        // 2. Façade de ville / Restaurant en arrière-plan
+        ctx.fillStyle = '#e2d5c3';
+        ctx.fillRect(0, h * 0.1, w * 0.85, h * 0.45);
+        ctx.fillStyle = '#ff4d6d'; // Store/Banne de terrasse
+        ctx.fillRect(0, h * 0.28, w * 0.9, h * 0.08);
 
-        // Plats sushis sur la table
-        Sprites.drawCentered(ctx, 'maki', w * 0.35, h * 0.65, scale);
-        Sprites.drawCentered(ctx, 'nigiri', w * 0.50, h * 0.65, scale);
-        Sprites.drawCentered(ctx, 'avocado', w * 0.65, h * 0.65, scale);
+        // Fenêtres du restaurant
+        ctx.fillStyle = '#34495e';
+        ctx.fillRect(w * 0.1, h * 0.14, w * 0.2, h * 0.12);
+        ctx.fillRect(w * 0.4, h * 0.14, w * 0.2, h * 0.12);
 
-        // Baguettes en bois
-        ctx.fillStyle = '#4a2511';
-        ctx.fillRect(w * 0.42, h * 0.72, scale * 6, 2);
+        // 3. Trottoir de terrasse en ville (Pavés gris)
+        ctx.fillStyle = '#bdc3c7';
+        ctx.fillRect(0, h * 0.52, w, h * 0.48);
+        ctx.fillStyle = '#95a5a6';
+        for (let x = 0; x < w; x += 16) ctx.fillRect(x, h * 0.52 + 2, 8, h * 0.48);
 
-        // Personnages
-        Sprites.drawCentered(ctx, 'player', w * 0.28, h * 0.44, scale);
-        Sprites.drawCentered(ctx, 'elise', w * 0.72, h * 0.44, scale);
+        // 4. Table de terrasse en bois
+        ctx.fillStyle = '#8b5a2b';
+        ctx.fillRect(w * 0.18, h * 0.60, w * 0.64, h * 0.28);
+        ctx.fillStyle = '#a05a2c';
+        ctx.fillRect(w * 0.18, h * 0.60, w * 0.64, 4);
+
+        // Plats de sushis sur la table
+        Sprites.drawCentered(ctx, 'maki', w * 0.36, h * 0.66, scale);
+        Sprites.drawCentered(ctx, 'nigiri', w * 0.50, h * 0.66, scale);
+        Sprites.drawCentered(ctx, 'avocado', w * 0.64, h * 0.66, scale);
+
+        // Personnages assis à la terrasse
+        Sprites.drawCentered(ctx, 'player', w * 0.26, h * 0.46, scale);
+        Sprites.drawCentered(ctx, 'elise', w * 0.74, h * 0.46, scale);
 
         // Cœur rose au-dessus
         ctx.fillStyle = '#ff4d6d';
@@ -93,44 +99,63 @@ const Album = (() => {
       draw(ctx, w, h) {
         const scale = Math.max(2, Math.floor(w / 70));
 
-        // 1. Vue extérieure par le pare-brise (Ciel bleu & route de jour)
+        // 1. Paysage de jour vu par le pare-brise
         ctx.fillStyle = '#70d6ff';
         ctx.fillRect(0, 0, w, h * 0.55);
 
-        // Arbres et paysage qui défilent
-        ctx.fillStyle = '#2ecc71';
-        ctx.fillRect(w * 0.05, h * 0.28, w * 0.25, h * 0.27);
-        ctx.fillRect(w * 0.70, h * 0.25, w * 0.25, h * 0.3);
+        // Soleil et arbres défilant
+        ctx.fillStyle = '#ffd166';
+        ctx.beginPath();
+        ctx.arc(w * 0.5, h * 0.2, w * 0.08, 0, Math.PI * 2);
+        ctx.fill();
 
-        // Route grise sous le soleil
+        ctx.fillStyle = '#2ecc71';
+        ctx.fillRect(w * 0.05, h * 0.25, w * 0.25, h * 0.3);
+        ctx.fillRect(w * 0.70, h * 0.22, w * 0.25, h * 0.33);
+
+        // Route grise
         ctx.fillStyle = '#95a5a6';
         ctx.fillRect(w * 0.3, h * 0.35, w * 0.4, h * 0.2);
 
-        // 2. Intérieur de la voiture (Habitacle & Tableau de bord)
-        ctx.fillStyle = '#2c3e50';
-        ctx.fillRect(0, h * 0.55, w, h * 0.45); // Tableau de bord
-
-        // Contour du pare-brise (Piliers & toit)
+        // 2. Habitacle de la voiture (Piliers & pare-brise)
         ctx.fillStyle = '#1a252f';
-        ctx.fillRect(0, 0, w * 0.1, h);         // Pilier gauche
-        ctx.fillRect(w * 0.9, 0, w * 0.1, h);   // Pilier droit
-        ctx.fillRect(0, 0, w, h * 0.12);        // Haut toit
+        ctx.fillRect(0, 0, w * 0.12, h);        // Pilier gauche
+        ctx.fillRect(w * 0.88, 0, w * 0.12, h);  // Pilier droit
+        ctx.fillRect(0, 0, w, h * 0.12);       // Toit
 
-        // Rétroviseur intérieur
+        // Rétroviseur
         ctx.fillStyle = '#34495e';
         ctx.fillRect(w * 0.46, h * 0.12, w * 0.08, h * 0.08);
 
-        // Sièges & Personnages vus de l'intérieur
-        // Conducteur (Player à gauche)
-        Sprites.drawCentered(ctx, 'player', w * 0.32, h * 0.48, scale);
-        // Passagère (Elise à droite)
-        Sprites.drawCentered(ctx, 'elise', w * 0.68, h * 0.48, scale);
+        // 3. Sièges de voiture (dossiers vus de derrière)
+        ctx.fillStyle = '#2c3e50';
+        ctx.fillRect(w * 0.18, h * 0.45, w * 0.28, h * 0.55); // Siège conducteur
+        ctx.fillRect(w * 0.54, h * 0.45, w * 0.28, h * 0.55); // Siège passager
 
-        // Volant devant le joueur
-        ctx.strokeStyle = '#111111';
-        ctx.lineWidth = 4;
+        // Appuis-tête
+        ctx.fillStyle = '#1a252f';
+        ctx.fillRect(w * 0.24, h * 0.38, w * 0.16, h * 0.08);
+        ctx.fillRect(w * 0.60, h * 0.38, w * 0.16, h * 0.08);
+
+        // Tableau de bord (couvre le bas du corps, AUCUNE jambe visible !)
+        ctx.fillStyle = '#34495e';
+        ctx.fillRect(0, h * 0.58, w, h * 0.42);
+
+        // Têtes / Bustes des personnages assis dans les sièges
+        // Seul le haut du torse et la tête émergent au-dessus du tableau de bord !
+        ctx.save();
         ctx.beginPath();
-        ctx.arc(w * 0.32, h * 0.64, scale * 5.5, 0, Math.PI * 2);
+        ctx.rect(0, 0, w, h * 0.60); // Masque pour couper au tableau de bord
+        ctx.clip();
+        Sprites.drawCentered(ctx, 'player', w * 0.32, h * 0.54, scale);
+        Sprites.drawCentered(ctx, 'elise', w * 0.68, h * 0.54, scale);
+        ctx.restore();
+
+        // Volant devant le conducteur
+        ctx.strokeStyle = '#111111';
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.arc(w * 0.32, h * 0.62, scale * 5, 0, Math.PI * 2);
         ctx.stroke();
       }
     },
@@ -140,31 +165,40 @@ const Album = (() => {
       draw(ctx, w, h) {
         const s = Math.max(2, Math.floor(w / 65));
 
-        // Ciel ensoleillé de jour
+        // Ciel bleu de jour
         ctx.fillStyle = '#70d6ff';
         ctx.fillRect(0, 0, w, h);
 
         // Soleil radieux
         ctx.fillStyle = '#ffd166';
         ctx.beginPath();
-        ctx.arc(w * 0.85, h * 0.2, w * 0.12, 0, Math.PI * 2);
+        ctx.arc(w * 0.82, h * 0.18, w * 0.1, 0, Math.PI * 2);
         ctx.fill();
 
-        // Nuages doux
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(w * 0.1, h * 0.15, w * 0.22, h * 0.12);
+        // Immeuble / Bâtiment de ville en arrière-plan
+        ctx.fillStyle = '#d5dbdb';
+        ctx.fillRect(w * 0.1, h * 0.15, w * 0.8, h * 0.55);
+        ctx.fillStyle = '#aed6f1'; // Vitrine de boutique
+        ctx.fillRect(w * 0.18, h * 0.28, w * 0.3, h * 0.3);
+        ctx.fillRect(w * 0.54, h * 0.28, w * 0.3, h * 0.3);
 
-        // Sol pavé / herbe de jour
-        ctx.fillStyle = '#06d6a0';
-        ctx.fillRect(0, h * 0.72, w, h * 0.28);
-        ctx.fillStyle = '#118ab2';
-        ctx.fillRect(0, h * 0.72, w, 3);
+        // Trottoir de ville en béton (Pas d'herbe !)
+        ctx.fillStyle = '#bdc3c7';
+        ctx.fillRect(0, h * 0.70, w, h * 0.30);
+        ctx.fillStyle = '#7f8c8d';
+        ctx.fillRect(0, h * 0.70, w, 4); // Bordure de trottoir
+        ctx.fillStyle = '#34495e';       // Chaussée/Asphalte au premier plan
+        ctx.fillRect(0, h * 0.88, w, h * 0.12);
 
-        // Personnages l'un contre l'autre pour le bisou
-        Sprites.drawCentered(ctx, 'player', w * 0.44, h * 0.60, s);
+        // Lampadaire de ville
+        ctx.fillStyle = '#34495e';
+        ctx.fillRect(w * 0.85, h * 0.25, scale(w) * 1.5, h * 0.45);
+
+        // Personnages qui s'embrassent sur le trottoir
+        Sprites.drawCentered(ctx, 'player', w * 0.44, h * 0.58, s);
         Sprites.drawCentered(ctx, 'elise', w * 0.54, h * 0.60, s);
 
-        // Cœurs rouges qui montent
+        // Cœurs rouges de jour
         ctx.fillStyle = '#ff4d6d';
         ctx.font = `${Math.round(s * 4.2)}px monospace`;
         ctx.fillText('♥', w * 0.46, h * 0.38);
