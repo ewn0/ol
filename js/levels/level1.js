@@ -8,8 +8,8 @@ Game.register((() => {
   /* ---- Textes (à retoucher librement) ---- */
   const T = {
     intro: [
-      "Souviens-toi : le parc, la table d'à côté, la casquette Lacoste, les TN.",
-      "Et Jul à fond, pendant tout le rendez-vous.",
+      "Souviens-toi : le parc, la table d'à côté, notre super voisin de table.",
+      "Et surtout la musique.",
       "Cette fois, on a une solution : appuie sur SHHH.",
     ],
     taunts: [
