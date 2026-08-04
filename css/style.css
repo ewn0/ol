@@ -88,6 +88,22 @@ img, canvas { image-rendering: pixelated; }
 .hud-label { color: var(--cyan); letter-spacing: .5px; }
 .hud-pct   { color: var(--yellow); font-size: 11px; }
 
+.hud-home-btn {
+  font-family: var(--font);
+  font-size: 8px;
+  background: #181534;
+  color: var(--yellow);
+  border: 2px solid var(--ink);
+  padding: 3px 6px;
+  cursor: pointer;
+  line-height: 1;
+  box-shadow: 2px 2px 0 var(--shadow);
+}
+.hud-home-btn:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 var(--shadow);
+}
+
 .segbar {
   display: flex;
   gap: 3px;

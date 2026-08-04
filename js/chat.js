@@ -28,23 +28,34 @@ const Chat = (() => {
   let messages = [];
   let currentUser = localStorage.getItem('ol_user') || null; // 'ewn' ou 'elise'
 
-  // Charge les messages depuis GitHub (branche ajouts puis main) ou LocalStorage
+  // Charge et FUSIONNE les messages depuis GitHub (branche ajouts/main) & LocalStorage sans perte
   async function loadMessages() {
+    let localMsgs = [];
+    try {
+      const cached = localStorage.getItem('ol_messages_cache');
+      if (cached) localMsgs = JSON.parse(cached);
+    } catch (e) {}
+
+    let remoteMsgs = [];
     for (const b of BRANCHES) {
       try {
         const url = `https://raw.githubusercontent.com/${REPO_USER}/${REPO_NAME}/${b}/${FILE_PATH}?t=${Date.now()}`;
         const res = await fetch(url);
         if (res.ok) {
-          messages = await res.json();
-          localStorage.setItem('ol_messages_cache', JSON.stringify(messages));
-          return;
+          remoteMsgs = await res.json();
+          break;
         }
-      } catch (e) {
-        // Essayer la branche suivante
-      }
+      } catch (e) {}
     }
-    const cached = localStorage.getItem('ol_messages_cache');
-    if (cached) messages = JSON.parse(cached);
+
+    // Fusion des messages par ID pour conserver les messages récents locaux
+    const map = new Map();
+    [...remoteMsgs, ...localMsgs].forEach(m => {
+      if (m && m.id) map.set(m.id, m);
+    });
+
+    messages = Array.from(map.values()).sort((a, b) => Number(a.id) - Number(b.id));
+    localStorage.setItem('ol_messages_cache', JSON.stringify(messages));
   }
 
   // Sauvegarde un nouveau message
@@ -71,7 +82,7 @@ const Chat = (() => {
       try {
         await commitToGitHub(token);
       } catch (err) {
-        console.warn('Sync GitHub automatique en cours...', err);
+        console.warn('Sync GitHub automatique...', err);
       }
     }
   }

@@ -420,6 +420,22 @@ const Game = (() => {
       sb.classList.toggle('off', !on);
     });
 
+    // Bouton retour au menu principal dans le HUD
+    const hb = document.getElementById('hud-home');
+    if (hb) {
+      let homeFired = false;
+      function goHome(e) {
+        if (homeFired) return;
+        homeFired = true;
+        if (e && e.preventDefault) e.preventDefault();
+        Sfx.play('click');
+        showTitle();
+        setTimeout(() => { homeFired = false; }, 300);
+      }
+      hb.addEventListener('pointerdown', goHome);
+      hb.addEventListener('click', goHome);
+    }
+
     // Confort mobile : pas de zoom au double-tap, pas de rebond
     document.addEventListener('dblclick', e => e.preventDefault(), { passive: false });
     document.addEventListener('gesturestart', e => e.preventDefault(), { passive: false });
