@@ -162,5 +162,7 @@ const Album = (() => {
     backBtn.addEventListener('click', goBack);
   }
 
-  return { show, SOUVENIRS };
+  const api = { show, SOUVENIRS };
+  window.Album = api;
+  return api;
 })();

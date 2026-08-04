@@ -165,7 +165,8 @@ const Game = (() => {
 
     s.appendChild(button('🖼️ ALBUM SOUVENIRS', 'big ghost', () => {
       Sfx.unlock();
-      if (window.Album) Album.show();
+      if (typeof Album !== 'undefined') Album.show();
+      else if (window.Album) window.Album.show();
     }));
 
     const hint = document.createElement('div');
