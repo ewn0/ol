@@ -14,7 +14,7 @@ Game.register((() => {
     ],
     noyade: ['Trop d\'eau !', 'Elle nage', 'Doucement', 'Piscine', 'Elle boit trop'],
     pousse: ['Ça pousse', 'Joli', 'Elle sort', 'Presque'],
-    win: "{X} lys épanouis sur {N}.\nBouquet livré.\nFleuriste : moi.",
+    win: "{X} lys épanouis sur {N}.\nFélicitations !",
     lose: "{X} lys sur {N}.\nC'est plus un bouquet, c'est une salade.\nOn recommence.",
   };
 
