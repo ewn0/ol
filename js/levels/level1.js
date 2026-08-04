@@ -65,6 +65,7 @@ Game.register((() => {
       e.preventDefault();
       volume = Math.max(0, volume - BAISSE_PAR_CLIC);
       api.sfx('shh');
+      if (Math.random() < 0.25) api.arcadePopup('SILENCE !', 'critical');
     }
     btn.addEventListener('pointerdown', shush);
     api.onCleanup(() => btn.removeEventListener('pointerdown', shush));

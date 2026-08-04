@@ -134,6 +134,7 @@ const Game = (() => {
   function showTitle() {
     clearScene();
     hud().classList.add('hidden');
+    Sfx.startBgm('main');
     const s = scene('center-col');
 
     const logo = document.createElement('h1');
@@ -153,6 +154,11 @@ const Game = (() => {
 
     s.appendChild(button(TEXTES.start, 'big', () => { Sfx.unlock(); startLevel(0); }));
 
+    s.appendChild(button('🖼️ ALBUM SOUVENIRS', 'big ghost', () => {
+      Sfx.unlock();
+      if (window.Album) Album.show();
+    }));
+
     const hint = document.createElement('div');
     hint.className = 'muted blink';
     hint.textContent = '▼ appuie sur START ▼';
@@ -169,12 +175,21 @@ const Game = (() => {
 
     const tag = document.createElement('div');
     tag.className = 'tag';
-    tag.textContent = 'NIVEAU ' + lvl.id + ' / 6';
+    tag.textContent = 'NIVEAU ' + lvl.id + ' / ' + levels.length;
     s.appendChild(tag);
 
     const h = document.createElement('h2');
     h.textContent = lvl.title;
     s.appendChild(h);
+
+    /* Vignette de BD inter-niveau */
+    const bdBox = document.createElement('div');
+    bdBox.className = 'bd-box';
+    bdBox.innerHTML = `
+      <div class="bd-badge">ÉPISODE ${lvl.id} — BD EXCLUSIVE</div>
+      <div class="bd-caption">« ${lvl.bdCaption || lvl.title} »</div>
+    `;
+    s.appendChild(bdBox);
 
     const box = document.createElement('div');
     box.className = 'panel';
@@ -206,6 +221,19 @@ const Game = (() => {
       onCleanup(fn) { disposers.push(fn); },
 
       sfx(name) { Sfx.play(name); },
+
+      /* Popup Arcade dynamique */
+      arcadePopup(text, type = 'normal') {
+        const parent = root;
+        const el = document.createElement('div');
+        el.className = 'arcade-popup ' + type;
+        el.textContent = text;
+        parent.appendChild(el);
+        if (type === 'critical') Sfx.play('critical');
+        else if (type === 'combo') Sfx.play('combo');
+        else Sfx.play('coin');
+        setTimeout(() => el.remove(), 900);
+      },
 
       /* Boucle de jeu : fn(dt en secondes, temps total) — stoppée automatiquement */
       loop(fn) {
@@ -246,16 +274,19 @@ const Game = (() => {
       win(message) {
         if (done) return; done = true;
         Sfx.play('win');
+        Sfx.startBgm('main');
         showResult(index, true, message);
       },
 
       lose(message) {
         if (done) return; done = true;
         Sfx.play('fail');
+        Sfx.startBgm('main');
         showResult(index, false, message);
       },
     };
 
+    Sfx.startBgm('action');
     cleanup = () => disposers.forEach(fn => { try { fn(); } catch (e) {} });
     lvl.start(root, api);
   }
@@ -335,6 +366,8 @@ const Game = (() => {
     register(def) { levels.push(def); },
     boot,
     play,
+    showTitle,
+    clearScene,
     get progress() { return progress; },
     animateProgress,
     button,

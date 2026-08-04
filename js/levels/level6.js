@@ -346,5 +346,5 @@ Game.register((() => {
     function attendre(ms) { return new Promise(r => setTimeout(r, ms)); }
   }
 
-  return { id: 6, title: 'LE VERDICT', intro: T.intro, startLabel: T.startLabel, start };
+  return { id: 7, title: 'LE VERDICT', intro: T.intro, startLabel: T.startLabel, start };
 })());

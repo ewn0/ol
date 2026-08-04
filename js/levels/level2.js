@@ -114,7 +114,8 @@ Game.register((() => {
             sortis++;
             scoreEl.textContent = attrapes;
             api.sfx('catch');
-            if (Math.random() < 0.35) api.floater(pick(T.bienJoue), field);
+            if (attrapes > 0 && attrapes % 5 === 0) api.arcadePopup('PERFECT !', 'combo');
+            else if (Math.random() < 0.35) api.floater(pick(T.bienJoue), field);
             continue;
           }
         }

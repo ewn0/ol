@@ -82,7 +82,8 @@ Game.register((() => {
         } else {
           score++;
           api.sfx('coin');
-          if (Math.random() < 0.4) api.floater(pick(T.combo), field);
+          if (score > 0 && score % 5 === 0) api.arcadePopup('COMBO X' + score + ' !', 'combo');
+          else if (Math.random() < 0.4) api.floater(pick(T.combo), field);
         }
         o.mort = true;
         o.vy = -80;
