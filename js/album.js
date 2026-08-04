@@ -150,10 +150,16 @@ const Album = (() => {
       souvenir.draw(cvApi.ctx, cvApi.w, cvApi.h);
     });
 
-    s.querySelector('#album-back').addEventListener('click', () => {
+    const backBtn = s.querySelector('#album-back');
+    let backFired = false;
+    function goBack() {
+      if (backFired) return;
+      backFired = true;
       Sfx.play('click');
       Game.showTitle();
-    });
+    }
+    backBtn.addEventListener('pointerdown', goBack);
+    backBtn.addEventListener('click', goBack);
   }
 
   return { show, SOUVENIRS };

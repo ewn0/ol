@@ -106,7 +106,16 @@ const Game = (() => {
     b.type = 'button';
     b.className = 'btn ' + cls;
     b.textContent = label;
-    b.addEventListener('click', () => { Sfx.play('click'); onClick(); });
+    let fired = false;
+    function trigger(e) {
+      if (fired) return;
+      fired = true;
+      Sfx.play('click');
+      onClick();
+      setTimeout(() => { fired = false; }, 300);
+    }
+    b.addEventListener('pointerdown', trigger);
+    b.addEventListener('click', trigger);
     return b;
   }
 
@@ -408,7 +417,7 @@ const Game = (() => {
     document.addEventListener('dblclick', e => e.preventDefault(), { passive: false });
     document.addEventListener('gesturestart', e => e.preventDefault(), { passive: false });
     document.addEventListener('touchmove', e => {
-      if (e.target.closest('.final-scroll')) return;
+      if (e.target.closest('.final-scroll') || e.target.closest('.scene') || e.target.closest('button')) return;
       e.preventDefault();
     }, { passive: false });
 
