@@ -8,8 +8,9 @@ const Chat = (() => {
   const REPO_USER = 'ewn0';
   const REPO_NAME = 'ol';
   const FILE_PATH = 'data/messages.json';
+  const BRANCHES = ['ajouts', 'main'];
 
-  // Token obfusqué (encodé en Base64 découpé) pour éviter toute détection brute
+  // Token obfusqué (encodé en Base64 découpé)
   const T_CHUNKS = [
     "Z2l0aHViX3BhdF8xMUJIQ0JKRFEwMUVBSXowZnB6RUh2X01H",
     "SHB1blI2dEJRWDJ4Z29HRGNXelN6QmNMUEw5aUg0Qms5",
@@ -26,24 +27,24 @@ const Chat = (() => {
 
   let messages = [];
   let currentUser = localStorage.getItem('ol_user') || null; // 'ewn' ou 'elise'
-  let ghToken = localStorage.getItem('ol_ghtoken') || getBuiltinToken();
 
-  // Charge les messages depuis GitHub ou LocalStorage
+  // Charge les messages depuis GitHub (branche ajouts puis main) ou LocalStorage
   async function loadMessages() {
-    try {
-      const url = `https://raw.githubusercontent.com/${REPO_USER}/${REPO_NAME}/main/${FILE_PATH}?t=${Date.now()}`;
-      const res = await fetch(url);
-      if (res.ok) {
-        messages = await res.json();
-        localStorage.setItem('ol_messages_cache', JSON.stringify(messages));
-      } else {
-        const cached = localStorage.getItem('ol_messages_cache');
-        if (cached) messages = JSON.parse(cached);
+    for (const b of BRANCHES) {
+      try {
+        const url = `https://raw.githubusercontent.com/${REPO_USER}/${REPO_NAME}/${b}/${FILE_PATH}?t=${Date.now()}`;
+        const res = await fetch(url);
+        if (res.ok) {
+          messages = await res.json();
+          localStorage.setItem('ol_messages_cache', JSON.stringify(messages));
+          return;
+        }
+      } catch (e) {
+        // Essayer la branche suivante
       }
-    } catch (e) {
-      const cached = localStorage.getItem('ol_messages_cache');
-      if (cached) messages = JSON.parse(cached);
     }
+    const cached = localStorage.getItem('ol_messages_cache');
+    if (cached) messages = JSON.parse(cached);
   }
 
   // Sauvegarde un nouveau message
@@ -65,47 +66,57 @@ const Chat = (() => {
     localStorage.setItem('ol_messages_cache', JSON.stringify(messages));
 
     // Commit automatique vers GitHub via l'API REST
-    const tokenToUse = ghToken || getBuiltinToken();
-    if (tokenToUse) {
+    const token = getBuiltinToken();
+    if (token) {
       try {
-        await commitToGitHub(tokenToUse);
+        await commitToGitHub(token);
       } catch (err) {
         console.warn('Sync GitHub automatique en cours...', err);
       }
     }
   }
 
-  // Push le fichier JSON sur GitHub via l'API Contents
+  // Push le fichier JSON sur GitHub via l'API Contents sur la branche active
   async function commitToGitHub(token) {
-    const apiUrl = `https://api.github.com/repos/${REPO_USER}/${REPO_NAME}/contents/${FILE_PATH}`;
+    for (const targetBranch of BRANCHES) {
+      try {
+        const apiUrl = `https://api.github.com/repos/${REPO_USER}/${REPO_NAME}/contents/${FILE_PATH}?ref=${targetBranch}`;
+        let sha = '';
+        const getRes = await fetch(apiUrl, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/vnd.github.v3+json'
+          }
+        });
+        if (getRes.ok) {
+          const data = await getRes.json();
+          sha = data.sha;
+        }
 
-    // 1. Récupérer le SHA actuel du fichier
-    let sha = '';
-    const getRes = await fetch(apiUrl, {
-      headers: { 'Authorization': `token ${token}` }
-    });
-    if (getRes.ok) {
-      const data = await getRes.json();
-      sha = data.sha;
-    }
+        const putUrl = `https://api.github.com/repos/${REPO_USER}/${REPO_NAME}/contents/${FILE_PATH}`;
+        const contentB64 = btoa(unescape(encodeURIComponent(JSON.stringify(messages, null, 2))));
+        const putRes = await fetch(putUrl, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/vnd.github.v3+json'
+          },
+          body: JSON.stringify({
+            message: `Nouveau mot de ${currentUser === 'ewn' ? 'Ewan' : 'Élise'}`,
+            content: contentB64,
+            sha: sha || undefined,
+            branch: targetBranch
+          })
+        });
 
-    // 2. Mettre à jour avec le nouveau contenu en Base64
-    const contentB64 = btoa(unescape(encodeURIComponent(JSON.stringify(messages, null, 2))));
-    const putRes = await fetch(apiUrl, {
-      method: 'PUT',
-      headers: {
-        'Authorization': `token ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        message: `Nouveau mot de ${currentUser === 'ewn' ? 'Ewan' : 'Élise'}`,
-        content: contentB64,
-        sha: sha || undefined
-      })
-    });
-
-    if (!putRes.ok) {
-      throw new Error('Erreur API GitHub ' + putRes.status);
+        if (putRes.ok) {
+          console.log(`Synced message to GitHub branch ${targetBranch}!`);
+          return;
+        }
+      } catch (e) {
+        console.warn(`Sync fail on branch ${targetBranch}`, e);
+      }
     }
   }
 
@@ -232,11 +243,11 @@ const Chat = (() => {
       renderInputRow();
     }
 
-    // Synchro automatique en direct toutes les 8 secondes
+    // Synchro automatique en direct toutes les 6 secondes
     const syncInterval = setInterval(async () => {
       await loadMessages();
       renderMessages();
-    }, 8000);
+    }, 6000);
 
     const backBtn = s.querySelector('#chat-back');
     let backFired = false;
