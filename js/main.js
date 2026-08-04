@@ -169,6 +169,12 @@ const Game = (() => {
       else if (window.Album) window.Album.show();
     }));
 
+    s.appendChild(button('💌 LA BOÎTE À MOTS', 'big ghost', () => {
+      Sfx.unlock();
+      if (typeof Chat !== 'undefined') Chat.show();
+      else if (window.Chat) window.Chat.show();
+    }));
+
     const hint = document.createElement('div');
     hint.className = 'muted blink';
     hint.textContent = '▼ appuie sur START ▼';
