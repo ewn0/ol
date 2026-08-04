@@ -8,7 +8,7 @@ Game.register((() => {
   /* ---- Textes ---- */
   const T = {
     intro: [
-      "Le bouquet de lys, c'était un bon move. On va le refaire.",
+      "Cette fois ci, quatre lys.",
       "Appuie sur une fleur pour l'arroser, lâche avant de la noyer.",
       "Oui, il faut s'occuper des quatre. C'est le principe.",
     ],
