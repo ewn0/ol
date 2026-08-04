@@ -9,8 +9,8 @@ Game.register((() => {
   const T = {
     intro: [
       "Petit problème logistique : je ne suis pas encore à Lille.",
-      "Le déménagement est prévu, mais en attendant il faut y aller à pied.",
-      "Tape pour sauter les obstacles. Direction : le beffroi.",
+      "Il faut y aller à pied.",
+      "Tape pour sauter les obstacles.",
     ],
     boum:    ['Aïe', 'Travaux', 'Déviation', 'Bouchon', 'Encore un plot'],
     route:   ['Ça avance', 'Panneau : Lille', 'Plus que quelques km', 'On sent le Nord'],
