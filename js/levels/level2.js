@@ -14,7 +14,7 @@ Game.register((() => {
     ],
     bienJoue: ['Sauvé !', 'Récupéré', 'Celui-là comptait', 'Beau réflexe', 'Encore un'],
     rate:     ['Perdu...', 'Adieu', 'Il est parti', 'RIP', 'On dira rien'],
-    win:      "Cheveux sauvés : {X}/{N}.\nLe stock est sécurisé.\nTu peux te recoiffer tranquille.",
+    win:      "Cheveux sauvés : {X}/{N}\nTu peux te recoiffer tranquille.",
     lose:     "Seulement {X}/{N}.\nÇa fait beaucoup de cheveux sur l'oreiller.\nOn retente.",
   };
 
