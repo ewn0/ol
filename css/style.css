@@ -447,6 +447,19 @@ p  { font-size: 10px; line-height: 1.9; }
 }
 
 .chat-box {
+  width: 100%;
+  max-width: 380px;
+  height: 220px;
+  border: var(--border) solid var(--ink);
+  background: #100e26;
+  box-shadow: 4px 4px 0 var(--shadow);
+  padding: 10px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
 /* ---------- Carte 8-Bit ---------- */
 
 .map-canvas-box {
@@ -494,12 +507,6 @@ p  { font-size: 10px; line-height: 1.9; }
 @keyframes pulse-badge {
   0%, 100% { transform: scale(1); opacity: 1; }
   50% { transform: scale(1.15); opacity: 0.9; }
-}
-  padding: 10px;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
 }
 
 .chat-msg-card {
