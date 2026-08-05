@@ -150,17 +150,33 @@ const MapScreen = (() => {
       }
     });
 
-    s.querySelector('#map-play').addEventListener('click', () => {
+    const playBtn = s.querySelector('#map-play');
+    let playFired = false;
+    function doPlay(e) {
+      if (playFired) return;
+      playFired = true;
+      if (e && e.preventDefault) e.preventDefault();
       Sfx.play('click');
       if (window.Game && Game.startLevel) {
         Game.startLevel(selectedId - 1);
       }
-    });
+      setTimeout(() => { playFired = false; }, 350);
+    }
+    playBtn.addEventListener('pointerdown', doPlay);
+    playBtn.addEventListener('click', doPlay);
 
-    s.querySelector('#map-back').addEventListener('click', () => {
+    const backBtn = s.querySelector('#map-back');
+    let backFired = false;
+    function goBack(e) {
+      if (backFired) return;
+      backFired = true;
+      if (e && e.preventDefault) e.preventDefault();
       Sfx.play('click');
       Game.showTitle();
-    });
+      setTimeout(() => { backFired = false; }, 350);
+    }
+    backBtn.addEventListener('pointerdown', goBack);
+    backBtn.addEventListener('click', goBack);
 
     updateInfo();
   }
