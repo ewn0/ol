@@ -161,7 +161,11 @@ const Game = (() => {
     multiline(TEXTES.accroche).forEach(p => box.appendChild(p));
     s.appendChild(box);
 
-    s.appendChild(button(TEXTES.start, 'big', () => { Sfx.unlock(); startLevel(0); }));
+    s.appendChild(button('🗺️ CARTE DES NIVEAUX', 'big ghost', () => {
+      Sfx.unlock();
+      if (typeof MapScreen !== 'undefined') MapScreen.show();
+      else if (window.MapScreen) window.MapScreen.show();
+    }));
 
     s.appendChild(button('🖼️ ALBUM SOUVENIRS', 'big ghost', () => {
       Sfx.unlock();
@@ -169,11 +173,19 @@ const Game = (() => {
       else if (window.Album) window.Album.show();
     }));
 
-    s.appendChild(button('💌 LA BOÎTE À MOTS', 'big ghost', () => {
+    const chatBtn = button('💌 LA BOÎTE À MOTS', 'big ghost', () => {
       Sfx.unlock();
       if (typeof Chat !== 'undefined') Chat.show();
       else if (window.Chat) window.Chat.show();
-    }));
+    });
+
+    if (window.Chat && Chat.getUnreadCount && Chat.getUnreadCount() > 0) {
+      const badge = document.createElement('span');
+      badge.className = 'unread-badge';
+      badge.textContent = 'NEW!';
+      chatBtn.appendChild(badge);
+    }
+    s.appendChild(chatBtn);
 
     const hint = document.createElement('div');
     hint.className = 'muted blink';
@@ -443,6 +455,11 @@ const Game = (() => {
       if (e.target.closest('.final-scroll') || e.target.closest('.scene') || e.target.closest('button')) return;
       e.preventDefault();
     }, { passive: false });
+
+    // Enregistrement du Service Worker PWA
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js').catch(err => console.warn('SW reg error', err));
+    }
 
     showTitle();
   }

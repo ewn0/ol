@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
+  <rect width="192" height="192" rx="40" fill="#14122b"/>
+  <rect x="12" y="12" width="168" height="168" rx="30" fill="#181534" stroke="#ff4d6d" stroke-width="5"/>
+  <rect x="36" y="36" width="120" height="76" rx="8" fill="#100e26" stroke="#ffd166" stroke-width="3"/>
+  <text x="96" y="85" font-family="monospace" font-size="42" font-weight="bold" fill="#ff4d6d" text-anchor="middle">🎮 ♥</text>
+  <circle cx="60" cy="144" r="14" fill="#35d6ed"/>
+  <circle cx="132" cy="144" r="14" fill="#ff4d6d"/>
+</svg>

@@ -353,14 +353,28 @@ const Chat = (() => {
 
     renderAll();
     await loadMessages();
+    markRead();
     renderMessages();
+  }
+
+  function markRead() {
+    localStorage.setItem('ol_last_read', Date.now().toString());
+  }
+
+  function getUnreadCount() {
+    const lastRead = Number(localStorage.getItem('ol_last_read') || '0');
+    if (!messages || messages.length === 0) return 0;
+    return messages.filter(m => {
+      const msgTime = Number(m.id);
+      return msgTime > lastRead && m.author !== currentUser;
+    }).length;
   }
 
   function escapeHtml(str) {
     return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
   }
 
-  const api = { show, loadMessages, purgeAll };
+  const api = { show, loadMessages, purgeAll, getUnreadCount, markRead };
   window.Chat = api;
   return api;
 })();
