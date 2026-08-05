@@ -1,75 +1,92 @@
 /* ============================================================
    BOÎTE À MOTS — Chat & Lettres d'amour d'Ewan & Élise.
-   Stockage des messages en temps réel via GitHub REST API (api.github.com).
+   Stockage des messages via un Worker Cloudflare (proxy).
+   Aucun secret n'est présent dans ce fichier : le Worker détient
+   la clé d'accès à l'espace de stockage, jamais le navigateur.
+   Voir cloudflare-worker/worker.js pour le code du Worker et son
+   déploiement.
    ============================================================ */
 
 const Chat = (() => {
 
-  const REPO_USER = 'ewn0';
-  const REPO_NAME = 'ol';
-  const FILE_PATH = 'data/messages.json';
-  const BRANCHES = ['main', 'ajouts'];
-
-  // Token obfusqué exact
-  const T_CHUNKS = [
-    "Z2l0aHViX3BhdF8xMUJIQ0JKRFEwMUVBSXowZnB6RUh2X01H",
-    "SHB1blI2dEJRWDJ4Z29HRGNXelN6QmNMUEw5aUg0Qms5",
-    "Rm9pTjFJcWpGNUNHMkM2VUpWdEFlalBI"
-  ];
-
-  function getBuiltinToken() {
-    try {
-      return atob(T_CHUNKS.join(''));
-    } catch (e) {
-      return '';
-    }
-  }
-
-  // Encodage / Décodage UTF-8 Base64 robuste
-  function utf8ToBase64(str) {
-    return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (match, p1) => String.fromCharCode('0x' + p1)));
-  }
-
-  function utf8FromBase64(b64) {
-    const cleanB64 = b64.replace(/\s/g, '');
-    const decoded = atob(cleanB64);
-    return decodeURIComponent(Array.prototype.map.call(decoded, c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
-  }
+  // À remplacer par l'URL de ton Worker une fois déployé,
+  // ex: 'https://ol-chat.TON-SOUS-DOMAINE.workers.dev'
+  const WORKER_URL = 'https://ol-chat.trxshlxrd.workers.dev';
+  // Doit correspondre à la variable APP_KEY définie dans le Worker.
+  const APP_KEY = '65801aedb5404d1885c7c44f364b5438524900a3';
 
   let messages = [];
   let currentUser = localStorage.getItem('ol_user') || null; // 'ewn' ou 'elise'
+  let syncStarted = false;
+  let notifiedIds = new Set();
+  try { notifiedIds = new Set(JSON.parse(localStorage.getItem('ol_notified_ids') || '[]')); } catch (e) {}
 
-  // Lit en temps réel depuis api.github.com (sans AUCUN cache CDN)
+  function isConfigured() {
+    return !WORKER_URL.includes('WORKER_SUBDOMAIN');
+  }
+
+  function saveNotifiedIds() {
+    localStorage.setItem('ol_notified_ids', JSON.stringify([...notifiedIds].slice(-200)));
+  }
+
+  // Notification locale (uniquement pendant que l'app est ouverte, pas de push serveur)
+  function notifyNewMessages(list) {
+    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+    if (!currentUser || !list) return;
+    const fresh = list.filter(m => m.author !== currentUser && !notifiedIds.has(m.id));
+    if (!fresh.length) return;
+    fresh.forEach(m => notifiedIds.add(m.id));
+    saveNotifiedIds();
+    const last = fresh[fresh.length - 1];
+    try {
+      new Notification(`💌 ${last.name} t'a écrit un mot`, {
+        body: last.text,
+        icon: 'assets/icon-192.svg',
+        tag: 'ol-chat',
+      });
+    } catch (e) {}
+  }
+
+  function requestNotifPermission() {
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  }
+
+  // Poll en arrière-plan (indépendant de l'écran affiché) pour le badge
+  // "NEW!" du menu et les notifications — à appeler une fois au démarrage.
+  async function startBackgroundSync() {
+    if (syncStarted) return;
+    syncStarted = true;
+    await loadMessages();
+    // Les messages déjà présents au démarrage ne déclenchent pas de notif.
+    messages.forEach(m => notifiedIds.add(m.id));
+    saveNotifiedIds();
+    setInterval(async () => {
+      await loadMessages();
+      notifyNewMessages(messages);
+    }, 45000);
+  }
+
+  // Lit en temps réel depuis le Worker
   async function loadMessages() {
-    const token = getBuiltinToken();
-    if (!token) {
+    if (!isConfigured()) {
       loadFromLocalCache();
       return;
     }
 
-    for (const b of BRANCHES) {
-      try {
-        const apiUrl = `https://api.github.com/repos/${REPO_USER}/${REPO_NAME}/contents/${FILE_PATH}?ref=${b}`;
-        const res = await fetch(apiUrl, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Accept': 'application/vnd.github.v3+json'
-          },
-          cache: 'no-store'
-        });
-
-        if (res.ok) {
-          const data = await res.json();
-          if (data.content) {
-            const rawJson = utf8FromBase64(data.content);
-            messages = JSON.parse(rawJson);
-            localStorage.setItem('ol_messages_cache', JSON.stringify(messages));
-            return;
-          }
+    try {
+      const res = await fetch(`${WORKER_URL}/messages`, { cache: 'no-store' });
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          messages = data;
+          localStorage.setItem('ol_messages_cache', JSON.stringify(messages));
+          return;
         }
-      } catch (e) {
-        console.warn('API read retry next branch...', e);
       }
+    } catch (e) {
+      console.warn('Chat: lecture Worker impossible, repli sur le cache local.', e);
     }
 
     loadFromLocalCache();
@@ -82,123 +99,60 @@ const Chat = (() => {
     } catch (e) {}
   }
 
-  // Envoie un message directement vers l'API GitHub en temps réel
+  // Envoie un message via le Worker
   async function sendMessage(text) {
     if (!text || !text.trim() || !currentUser) return;
 
-    const token = getBuiltinToken();
-    const now = new Date();
-    const dateStr = `${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    if (!isConfigured()) {
+      // Mode dégradé hors-ligne : conservé uniquement en local.
+      messages.push({
+        id: Date.now().toString(),
+        author: currentUser,
+        name: currentUser === 'ewn' ? 'Ewan' : 'Élise',
+        text: text.trim(),
+        date: new Date().toLocaleString('fr-FR'),
+      });
+      localStorage.setItem('ol_messages_cache', JSON.stringify(messages));
+      return;
+    }
 
-    const newMsg = {
-      id: Date.now().toString(),
-      author: currentUser,
-      name: currentUser === 'ewn' ? 'Ewan' : 'Élise',
-      text: text.trim(),
-      date: dateStr,
-    };
-
-    // 1. Récupérer le dernier état en direct
-    await loadMessages();
-
-    // 2. Ajouter le nouveau message
-    messages.push(newMsg);
-    localStorage.setItem('ol_messages_cache', JSON.stringify(messages));
-
-    // 3. Écrire le commit en direct
-    if (token) {
-      for (const targetBranch of BRANCHES) {
-        try {
-          const apiUrl = `https://api.github.com/repos/${REPO_USER}/${REPO_NAME}/contents/${FILE_PATH}?ref=${targetBranch}`;
-          let sha = '';
-          const getRes = await fetch(apiUrl, {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Accept': 'application/vnd.github.v3+json'
-            },
-            cache: 'no-store'
-          });
-
-          if (getRes.ok) {
-            const data = await getRes.json();
-            sha = data.sha;
-          }
-
-          const putUrl = `https://api.github.com/repos/${REPO_USER}/${REPO_NAME}/contents/${FILE_PATH}`;
-          const contentB64 = utf8ToBase64(JSON.stringify(messages, null, 2));
-
-          const putRes = await fetch(putUrl, {
-            method: 'PUT',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json',
-              'Accept': 'application/vnd.github.v3+json'
-            },
-            body: JSON.stringify({
-              message: `Nouveau mot de ${currentUser === 'ewn' ? 'Ewan' : 'Élise'}`,
-              content: contentB64,
-              sha: sha || undefined,
-              branch: targetBranch
-            })
-          });
-
-          if (putRes.ok) {
-            console.log(`Live commit OK on branch ${targetBranch}!`);
-          }
-        } catch (err) {
-          console.error(`Live commit error on branch ${targetBranch}`, err);
+    try {
+      const res = await fetch(`${WORKER_URL}/messages`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-App-Key': APP_KEY,
+        },
+        body: JSON.stringify({ author: currentUser, text: text.trim() }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          messages = data;
+          localStorage.setItem('ol_messages_cache', JSON.stringify(messages));
         }
       }
+    } catch (e) {
+      console.error('Chat: envoi impossible.', e);
     }
   }
 
-  // Purge TOUS les messages sur GitHub et en local
+  // Purge TOUS les messages
   async function purgeAll() {
     if (!confirm('Voulez-vous réinitialiser et effacer TOUS les mots doux ?')) return;
 
     messages = [];
     localStorage.removeItem('ol_messages_cache');
 
-    const token = getBuiltinToken();
-    if (token) {
-      for (const targetBranch of BRANCHES) {
-        try {
-          const apiUrl = `https://api.github.com/repos/${REPO_USER}/${REPO_NAME}/contents/${FILE_PATH}?ref=${targetBranch}`;
-          let sha = '';
-          const getRes = await fetch(apiUrl, {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Accept': 'application/vnd.github.v3+json'
-            },
-            cache: 'no-store'
-          });
+    if (!isConfigured()) return;
 
-          if (getRes.ok) {
-            const data = await getRes.json();
-            sha = data.sha;
-          }
-
-          const putUrl = `https://api.github.com/repos/${REPO_USER}/${REPO_NAME}/contents/${FILE_PATH}`;
-          const contentB64 = utf8ToBase64('[]');
-
-          await fetch(putUrl, {
-            method: 'PUT',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json',
-              'Accept': 'application/vnd.github.v3+json'
-            },
-            body: JSON.stringify({
-              message: 'Purge des mots doux',
-              content: contentB64,
-              sha: sha || undefined,
-              branch: targetBranch
-            })
-          });
-        } catch (err) {
-          console.error('Purge error on branch ' + targetBranch, err);
-        }
-      }
+    try {
+      await fetch(`${WORKER_URL}/purge`, {
+        method: 'POST',
+        headers: { 'X-App-Key': APP_KEY },
+      });
+    } catch (e) {
+      console.error('Chat: purge impossible.', e);
     }
   }
 
@@ -247,8 +201,8 @@ const Chat = (() => {
 
         const bEwn = userBar.querySelector('#pick-ewn');
         const bElise = userBar.querySelector('#pick-elise');
-        bEwn.addEventListener('click', () => { currentUser = 'ewn'; localStorage.setItem('ol_user', 'ewn'); renderAll(); });
-        bElise.addEventListener('click', () => { currentUser = 'elise'; localStorage.setItem('ol_user', 'elise'); renderAll(); });
+        bEwn.addEventListener('click', () => { currentUser = 'ewn'; localStorage.setItem('ol_user', 'ewn'); requestNotifPermission(); renderAll(); });
+        bElise.addEventListener('click', () => { currentUser = 'elise'; localStorage.setItem('ol_user', 'elise'); requestNotifPermission(); renderAll(); });
       } else {
         userBar.innerHTML = `
           <div class="chat-current-user">
@@ -325,7 +279,7 @@ const Chat = (() => {
       renderInputRow();
     }
 
-    // Polling en direct toutes les 4 secondes via api.github.com
+    // Polling en direct toutes les 4 secondes via le Worker
     const syncInterval = setInterval(async () => {
       await loadMessages();
       renderMessages();
@@ -374,7 +328,7 @@ const Chat = (() => {
     return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
   }
 
-  const api = { show, loadMessages, purgeAll, getUnreadCount, markRead };
+  const api = { show, loadMessages, purgeAll, getUnreadCount, markRead, startBackgroundSync };
   window.Chat = api;
   return api;
 })();
