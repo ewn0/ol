@@ -1,0 +1,12 @@
+name = "ol-chat"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+
+kv_namespaces = [
+  { binding = "MESSAGES_KV", id = "107db175e7884704b43a6976c53d89b4" }
+]
+
+[vars]
+ALLOWED_ORIGIN = "https://ewn0.github.io"
+# APP_KEY doit être défini comme secret (jamais en clair ici) :
+#   npx wrangler secret put APP_KEY

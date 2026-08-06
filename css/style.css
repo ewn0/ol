@@ -146,6 +146,15 @@ img, canvas { image-rendering: pixelated; }
   padding: 14px;
 }
 
+.special-banner {
+  border-color: var(--yellow);
+  animation: specialPulse 1.6s ease-in-out infinite;
+}
+@keyframes specialPulse {
+  0%, 100% { box-shadow: 5px 5px 0 var(--shadow); }
+  50% { box-shadow: 5px 5px 0 var(--shadow), 0 0 14px var(--yellow); }
+}
+
 .center-col {
   flex: 1 1 auto;
   min-height: 0;
@@ -460,6 +469,15 @@ p  { font-size: 10px; line-height: 1.9; }
   gap: 10px;
 }
 
+/* ---------- Écran de verrouillage ---------- */
+
+.lock-canvas-box {
+  width: 140px;
+  height: 140px;
+  margin: 0 auto 4px;
+}
+.lock-canvas-box canvas { display: block; width: 100%; height: 100%; }
+
 /* ---------- Carte 8-Bit ---------- */
 
 .map-canvas-box {
@@ -581,8 +599,6 @@ p  { font-size: 10px; line-height: 1.9; }
 }
 .chat-text-input:focus {
   border-color: var(--cyan);
-}
-  line-height: 1.5;
 }
 
 /* ---------- Secousse d'échec ---------- */

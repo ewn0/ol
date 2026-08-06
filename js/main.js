@@ -8,7 +8,7 @@
 
 const TEXTES = {
   titre:        'OPÉRATION\nLILLE',
-  sousTitre:    'Un jeu en 6 niveaux',
+  sousTitre:    'Un jeu en 7 niveaux',
   jauge:        'Chargement du déménagement',   // libellé de la jauge globale
   accroche:     "Objectif : me faire venir à Lille.\nAucune pression. Enfin si, un peu.",
   start:        'START',
@@ -32,8 +32,25 @@ const TEXTES = {
     'NIVEAU 3 TERMINÉ !',
     'NIVEAU 4 TERMINÉ !',
     'NIVEAU 5 TERMINÉ !',
+    'NIVEAU 6 TERMINÉ !',
   ],
 };
+
+/* ------------------------------------------------------------------
+   DATES SPÉCIALES — affiche un message différent sur l'écran titre
+   à une date précise (anniversaire, jour du déménagement...).
+   Format : 'JJ-MM'. Ajoute autant de lignes que tu veux.
+   Exemple : { date: '14-02', message: 'Joyeuse Saint-Valentin !' },
+------------------------------------------------------------------ */
+const DATES_SPECIALES = [
+];
+
+function messageDuJour() {
+  const now = new Date();
+  const jjmm = String(now.getDate()).padStart(2, '0') + '-' + String(now.getMonth() + 1).padStart(2, '0');
+  const found = DATES_SPECIALES.find(d => d.date === jjmm);
+  return found ? found.message : null;
+}
 
 const Game = (() => {
 
@@ -49,6 +66,21 @@ const Game = (() => {
   const stage   = () => document.getElementById('stage');
   const hud     = () => document.getElementById('hud');
   const segbar  = () => document.getElementById('segbar');
+
+  /* ---------------- Progression des niveaux (pour la carte) ---------------- */
+
+  const PROGRESS_KEY = 'ol_completed_levels';
+
+  function getCompletedLevels() {
+    try { return new Set(JSON.parse(localStorage.getItem(PROGRESS_KEY) || '[]')); }
+    catch (e) { return new Set(); }
+  }
+
+  function markLevelCompleted(id) {
+    const done = getCompletedLevels();
+    done.add(id);
+    localStorage.setItem(PROGRESS_KEY, JSON.stringify([...done]));
+  }
   const pctEl   = () => document.getElementById('hud-pct');
   const wipeEl  = () => document.getElementById('wipe');
 
@@ -114,7 +146,9 @@ const Game = (() => {
       onClick();
       setTimeout(() => { fired = false; }, 300);
     }
-    b.addEventListener('pointerdown', trigger);
+    // Un seul type d'événement (click) : un bouton ici change souvent d'écran,
+    // et écouter aussi pointerdown faisait parfois arriver le click de ce même
+    // tap sur le NOUVEAU bouton affiché au même endroit (faux clic fantôme).
     b.addEventListener('click', trigger);
     return b;
   }
@@ -156,9 +190,10 @@ const Game = (() => {
     sub.textContent = TEXTES.sousTitre;
     s.appendChild(sub);
 
+    const special = messageDuJour();
     const box = document.createElement('div');
-    box.className = 'panel';
-    multiline(TEXTES.accroche).forEach(p => box.appendChild(p));
+    box.className = 'panel' + (special ? ' special-banner' : '');
+    multiline(special || TEXTES.accroche).forEach(p => box.appendChild(p));
     s.appendChild(box);
 
     s.appendChild(button('🗺️ CARTE DES NIVEAUX', 'big ghost', () => {
@@ -391,6 +426,7 @@ const Game = (() => {
 
     if (won) {
       retryCount = 0;
+      markLevelCompleted(lvl.id);
       const target = Math.min(100, STEP * (index + 1));
       await animateProgress(target);
 
@@ -444,7 +480,6 @@ const Game = (() => {
         showTitle();
         setTimeout(() => { homeFired = false; }, 300);
       }
-      hb.addEventListener('pointerdown', goHome);
       hb.addEventListener('click', goHome);
     }
 
@@ -461,18 +496,26 @@ const Game = (() => {
       navigator.serviceWorker.register('./sw.js').catch(err => console.warn('SW reg error', err));
     }
 
+    // Synchro d'arrière-plan de la Boîte à Mots (badge "NEW!" + notifications)
+    if (window.Chat && Chat.startBackgroundSync) Chat.startBackgroundSync();
+
     showTitle();
   }
 
-  return {
+  const api = {
     register(def) { levels.push(def); },
     boot,
     play,
+    startLevel,
     showTitle,
     clearScene,
+    getCompletedLevels,
+    markLevelCompleted,
     get progress() { return progress; },
     animateProgress,
     button,
     wipe,
   };
+  window.Game = api;
+  return api;
 })();
