@@ -295,7 +295,6 @@ const Chat = (() => {
       Sfx.play('click');
       Game.showTitle();
     }
-    backBtn.addEventListener('pointerdown', goBack);
     backBtn.addEventListener('click', goBack);
 
     // Bouton de Purge

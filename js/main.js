@@ -146,7 +146,9 @@ const Game = (() => {
       onClick();
       setTimeout(() => { fired = false; }, 300);
     }
-    b.addEventListener('pointerdown', trigger);
+    // Un seul type d'événement (click) : un bouton ici change souvent d'écran,
+    // et écouter aussi pointerdown faisait parfois arriver le click de ce même
+    // tap sur le NOUVEAU bouton affiché au même endroit (faux clic fantôme).
     b.addEventListener('click', trigger);
     return b;
   }
@@ -478,7 +480,6 @@ const Game = (() => {
         showTitle();
         setTimeout(() => { homeFired = false; }, 300);
       }
-      hb.addEventListener('pointerdown', goHome);
       hb.addEventListener('click', goHome);
     }
 

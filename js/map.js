@@ -178,7 +178,6 @@ const MapScreen = (() => {
       }
       setTimeout(() => { playFired = false; }, 350);
     }
-    playBtn.addEventListener('pointerdown', doPlay);
     playBtn.addEventListener('click', doPlay);
 
     const backBtn = s.querySelector('#map-back');
@@ -191,7 +190,6 @@ const MapScreen = (() => {
       Game.showTitle();
       setTimeout(() => { backFired = false; }, 350);
     }
-    backBtn.addEventListener('pointerdown', goBack);
     backBtn.addEventListener('click', goBack);
 
     updateInfo();
