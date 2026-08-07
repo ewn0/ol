@@ -135,6 +135,16 @@ const Sfx = (() => {
     }
   }
 
+  // Coupe la musique quand on quitte l'onglet/l'appli, la reprend au retour
+  // (si elle jouait et qu'elle n'a pas été désactivée entre-temps).
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      stopBgm();
+    } else if (enabled && bgmOn && currentTrack) {
+      startBgm(currentTrack === TRACKS.action ? 'action' : 'main');
+    }
+  });
+
   const LIB = {
     click:    () => beep(520, 0.06),
     shh:      () => beep(900, 0.05, 'square', 0.05, 400),

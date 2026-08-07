@@ -1,5 +1,5 @@
 /* Service Worker pour Opération Lille (PWA) */
-const CACHE_NAME = 'operation-lille-v7';
+const CACHE_NAME = 'operation-lille-v8';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',

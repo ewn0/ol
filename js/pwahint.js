@@ -10,16 +10,32 @@ const PwaHint = (() => {
   const DISMISS_INSTALL = 'ol_hint_install_dismissed';
   const DISMISS_NOTIF = 'ol_hint_notif_dismissed';
 
+  // Android/Chrome propose un vrai prompt natif d'installation. On l'intercepte
+  // tout de suite (l'évènement peut arriver bien avant qu'on l'utilise) pour
+  // le déclencher plus tard depuis notre propre bandeau, plutôt que la mini-
+  // barre générique du navigateur.
+  let deferredInstallEvent = null;
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredInstallEvent = e;
+  });
+  window.addEventListener('appinstalled', () => {
+    localStorage.setItem(DISMISS_INSTALL, '1');
+  });
+
   function isStandalone() {
     return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
   }
 
   // iOS Safari précisément (pas Chrome/Firefox sur iOS, qui n'ont pas le
-  // même chemin « Partager → Sur l'écran d'accueil »).
+  // même chemin « Partager → Sur l'écran d'accueil »). Le second test
+  // rattrape le mode « Afficher le site web pour ordinateur », qui fait
+  // disparaître "iPhone"/"iPad" du user-agent sur certains iOS/iPadOS.
   function isIosSafari() {
     const ua = navigator.userAgent;
-    const ios = /iP(hone|od|ad)/.test(ua);
-    const safari = /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS|OPiOS/.test(ua);
+    const safari = /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS|OPiOS|Android/.test(ua);
+    const ios = /iP(hone|od|ad)/.test(ua)
+      || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     return ios && safari;
   }
 
@@ -38,7 +54,7 @@ const PwaHint = (() => {
     return { host, close };
   }
 
-  function showInstallHint() {
+  function showInstallHintIos() {
     const { host } = banner(`
       <button type="button" class="hint-close" aria-label="Fermer">×</button>
       <div class="hint-icon">📲</div>
@@ -50,6 +66,39 @@ const PwaHint = (() => {
     `);
     host.querySelector('.hint-close').addEventListener('click', () => {
       localStorage.setItem(DISMISS_INSTALL, '1');
+    });
+  }
+
+  function showInstallHintAndroid() {
+    const { host, close } = banner(`
+      <button type="button" class="hint-close" aria-label="Fermer">×</button>
+      <div class="hint-icon">📲</div>
+      <div class="hint-text">
+        Tu peux installer ce jeu sur ton téléphone si tu veux.
+        Aucune pression. Enfin si, un peu.
+      </div>
+      <button type="button" class="btn ghost hint-cta">INSTALLER</button>
+    `);
+    host.querySelector('.hint-close').addEventListener('click', () => {
+      localStorage.setItem(DISMISS_INSTALL, '1');
+    });
+    host.querySelector('.hint-cta').addEventListener('click', async () => {
+      if (window.Sfx) Sfx.play('click');
+      // Le bandeau doit se fermer et ne plus revenir quoi qu'il arrive côté
+      // navigateur (prompt() qui échoue, événement déjà expiré, ou userChoice
+      // qui ne se résout jamais — d'où le timeout de secours ci-dessous).
+      try {
+        if (deferredInstallEvent) {
+          deferredInstallEvent.prompt().catch(() => {});
+          await Promise.race([
+            deferredInstallEvent.userChoice,
+            new Promise(resolve => setTimeout(resolve, 3000)),
+          ]);
+        }
+      } catch (e) {}
+      deferredInstallEvent = null;
+      localStorage.setItem(DISMISS_INSTALL, '1');
+      close();
     });
   }
 
@@ -79,9 +128,10 @@ const PwaHint = (() => {
   // obligatoire sur iOS pour avoir droit aux notifs), puis les notifs
   // une fois que c'est fait.
   function check() {
-    if (!isStandalone() && isIosSafari() && localStorage.getItem(DISMISS_INSTALL) !== '1') {
-      showInstallHint();
-      return;
+    const installSeen = localStorage.getItem(DISMISS_INSTALL) === '1';
+    if (!isStandalone() && !installSeen) {
+      if (isIosSafari()) { showInstallHintIos(); return; }
+      if (deferredInstallEvent) { showInstallHintAndroid(); return; }
     }
     if (isStandalone() && 'Notification' in window
         && Notification.permission === 'default'
