@@ -268,6 +268,11 @@ const Game = (() => {
     }
     s.appendChild(chatBtn);
 
+    s.appendChild(button('📖 NOTRE JOURNAL', 'big ghost', () => {
+      Sfx.unlock();
+      if (window.Journal) Journal.show();
+    }));
+
     const row = document.createElement('div');
     row.style.display = 'flex';
     row.style.gap = '8px';

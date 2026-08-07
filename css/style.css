@@ -697,6 +697,31 @@ p  { font-size: 10px; line-height: 1.9; }
   border-color: var(--cyan);
 }
 
+/* ---------- Notre Journal ---------- */
+
+.journal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  max-width: 380px;
+  margin-top: 10px;
+}
+
+.journal-textarea {
+  min-height: 70px;
+  resize: vertical;
+  line-height: 1.6;
+  font-family: var(--font);
+}
+
+.journal-entry-title {
+  font-size: 10px;
+  color: var(--yellow);
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
 /* ---------- Secousse d'échec ---------- */
 
 .shake { animation: shake .38s steps(2) 2; }
