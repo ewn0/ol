@@ -7,6 +7,11 @@ const Sfx = (() => {
   let ctx = null;
   let enabled = true;
 
+  // Réglages fins (écran Options) : indépendants du bouton mute global du HUD,
+  // qui reste le coupe-son général (enabled). Persistés en localStorage.
+  let sfxOn = localStorage.getItem('ol_sfx_on') !== '0';
+  let bgmOn = localStorage.getItem('ol_bgm_on') !== '0';
+
   // BGM Sequencer state
   let bgmTimer = null;
   let bgmNoteIndex = 0;
@@ -99,7 +104,7 @@ const Sfx = (() => {
     let bassIdx = 0;
 
     function step() {
-      if (!enabled) return;
+      if (!enabled || !bgmOn) return;
       const melNote = currentTrack.melody[melIdx % currentTrack.melody.length];
       const bassNote = currentTrack.bass[bassIdx % currentTrack.bass.length];
 
@@ -130,6 +135,16 @@ const Sfx = (() => {
     }
   }
 
+  // Coupe la musique quand on quitte l'onglet/l'appli, la reprend au retour
+  // (si elle jouait et qu'elle n'a pas été désactivée entre-temps).
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      stopBgm();
+    } else if (enabled && bgmOn && currentTrack) {
+      startBgm(currentTrack === TRACKS.action ? 'action' : 'main');
+    }
+  });
+
   const LIB = {
     click:    () => beep(520, 0.06),
     shh:      () => beep(900, 0.05, 'square', 0.05, 400),
@@ -146,7 +161,7 @@ const Sfx = (() => {
   };
 
   return {
-    play(name) { const f = LIB[name]; if (f) f(); },
+    play(name) { if (!enabled || !sfxOn) return; const f = LIB[name]; if (f) f(); },
     unlock() { ensure(); },
     toggle() {
       enabled = !enabled;
@@ -161,5 +176,19 @@ const Sfx = (() => {
     startBgm,
     stopBgm,
     get enabled() { return enabled; },
+
+    /* --- Réglages fins (écran Options) --- */
+    isSfxOn() { return sfxOn; },
+    isBgmOn() { return bgmOn; },
+    setSfxOn(v) {
+      sfxOn = v;
+      localStorage.setItem('ol_sfx_on', v ? '1' : '0');
+    },
+    setBgmOn(v) {
+      bgmOn = v;
+      localStorage.setItem('ol_bgm_on', v ? '1' : '0');
+      if (!v) stopBgm();
+      else if (currentTrack) startBgm(currentTrack === TRACKS.action ? 'action' : 'main');
+    },
   };
 })();

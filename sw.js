@@ -1,15 +1,19 @@
-/* Service Worker pour Opération Lille (PWA) */
-const CACHE_NAME = 'operation-lille-v3';
+/* Service Worker pour Safeplace (PWA) */
+const CACHE_NAME = 'safeplace-v2';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './css/style.css',
   './js/audio.js',
   './js/sprites.js',
+  './js/achievements.js',
+  './js/pwahint.js',
+  './js/surprise.js',
   './js/main.js',
   './js/album.js',
   './js/chat.js',
   './js/map.js',
+  './js/options.js',
   './js/lock.js',
   './js/levels/level1.js',
   './js/levels/level2.js',

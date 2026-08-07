@@ -296,6 +296,34 @@ const Sprites = (() => {
       ]
     ),
 
+    /* --- Le Sacré-Cœur (2e date, Paris) — même silhouette éprouvée que le
+       beffroi, repeinte en pierre blanche + lumières dorées du soir --- */
+    sacrecoeur: def(
+      { B: '#f0e6d2', W: '#ffd23f', Y: '#ff8fa3' },
+      [
+        '......YY......',
+        '.....YYYY.....',
+        '.....BBBB.....',
+        '....BBBBBB....',
+        '....BWWWWB....',
+        '....BBBBBB....',
+        '....BBBBBB....',
+        '...BBBBBBBB...',
+        '...BWWBBWWB...',
+        '...BBBBBBBB...',
+        '..BBBBBBBBBB..',
+        '..BWWBBBBWWB..',
+        '..BBBBBBBBBB..',
+        '.BBBBBBBBBBBB.',
+        '.BWWBBBBBBWWB.',
+        '.BBBBBBBBBBBB.',
+        'BBBBBBBBBBBBBB',
+        'BBBWWBBBBWWBBB',
+        'BBBBBBBBBBBBBB',
+        'BBBBBBBBBBBBBB',
+      ]
+    ),
+
     /* --- Valise (arrivée à Lille) --- */
     valise: def(
       { H: '#3a2a1a', B: '#a05a2c', W: '#ffd23f', b: '#7a4020' },

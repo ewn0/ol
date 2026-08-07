@@ -1,14 +1,16 @@
 /* ============================================================
-   OPÉRATION LILLE — moteur de jeu
+   SAFEPLACE — moteur de l'app
    Gère : scènes, jauge globale, transitions, cycle intro/jeu/résultat.
-   Les niveaux s'enregistrent via Game.register({...}).
+   L'aventure narrative (Aventure Lille) s'enregistre en niveaux via
+   Game.register({...}) ; le reste de l'app (carte, album, boîte à mots,
+   succès, options) vit autour, dans les autres modules.
    ============================================================ */
 
 /* --- Textes génériques, faciles à retoucher --- */
 
 const TEXTES = {
-  titre:        'OPÉRATION\nLILLE',
-  sousTitre:    'Un jeu en 7 niveaux',
+  titre:        'SAFEPLACE',
+  sousTitre:    'Ewan & Élise, à Lille',
   jauge:        'Chargement du déménagement',   // libellé de la jauge globale
   accroche:     "Objectif : me faire venir à Lille.\nAucune pression. Enfin si, un peu.",
   start:        'START',
@@ -174,29 +176,73 @@ const Game = (() => {
 
   /* ---------------- Écran titre ---------------- */
 
+  // Petit ciel étoilé animé derrière l'écran titre (rappel du décor du niveau
+  // final). Posé en z-index négatif dans un conteneur relatif : il peint
+  // derrière le contenu normal de la scène sans que celui-ci ait besoin
+  // de son propre z-index. Retourne la fonction de nettoyage à stocker
+  // dans `cleanup`, appelée automatiquement par clearScene() au prochain
+  // changement d'écran.
+  function titleBackground(parent) {
+    const box = document.createElement('div');
+    box.style.position = 'absolute';
+    box.style.inset = '0';
+    box.style.zIndex = '-1';
+    box.style.pointerEvents = 'none';
+    parent.insertBefore(box, parent.firstChild);
+
+    const cv = makeCanvas(box);
+    const stars = Array.from({ length: 34 }, () => ({
+      x: Math.random(),
+      y: Math.random() * 0.7,
+      s: Math.random() < 0.3 ? 3 : 2,
+      speed: 0.6 + Math.random() * 2.2,
+    }));
+
+    let raf = 0, running = true;
+    (function frame(t) {
+      if (!running) return;
+      const { ctx, w, h } = cv;
+      ctx.fillStyle = '#100e26';
+      ctx.fillRect(0, 0, w, h);
+
+      ctx.fillStyle = '#f4f4f8';
+      stars.forEach(st => {
+        ctx.globalAlpha = 0.35 + Math.abs(Math.sin((t / 1000) * st.speed)) * 0.55;
+        ctx.fillRect(Math.round(st.x * w), Math.round(st.y * h), st.s, st.s);
+      });
+      ctx.globalAlpha = 1;
+
+      const scale = Math.max(3, Math.floor(w / 90));
+      ctx.globalAlpha = 0.85;
+      Sprites.drawCentered(ctx, 'beffroi', w * 0.78, h * 0.8, scale);
+      ctx.globalAlpha = 1;
+
+      raf = requestAnimationFrame(frame);
+    })(0);
+
+    return () => { running = false; cancelAnimationFrame(raf); cv.destroy(); };
+  }
+
   function showTitle() {
     clearScene();
     hud().classList.add('hidden');
     Sfx.startBgm('main');
     const s = scene('center-col');
+    // z-index explicite (pas juste position:relative) : sans ça, le fond en
+    // z-index négatif n'est pas cantonné à l'intérieur de `s` mais rivalise
+    // avec le fond de #app dans le contexte d'empilement racine, qui le
+    // repeint par-dessus juste après. Un z-index non-auto force `s` à créer
+    // son propre contexte d'empilement local.
+    s.style.position = 'relative';
+    s.style.zIndex = '0';
+    cleanup = titleBackground(s);
 
     const logo = document.createElement('h1');
     logo.className = 'title-logo';
     logo.textContent = TEXTES.titre;   // le saut de ligne est conservé (white-space: pre-line)
     s.appendChild(logo);
 
-    const sub = document.createElement('div');
-    sub.className = 'tag';
-    sub.textContent = TEXTES.sousTitre;
-    s.appendChild(sub);
-
-    const special = messageDuJour();
-    const box = document.createElement('div');
-    box.className = 'panel' + (special ? ' special-banner' : '');
-    multiline(special || TEXTES.accroche).forEach(p => box.appendChild(p));
-    s.appendChild(box);
-
-    s.appendChild(button('🗺️ CARTE DES NIVEAUX', 'big ghost', () => {
+    s.appendChild(button('🎮 AVENTURE LILLE', 'big ghost', () => {
       Sfx.unlock();
       if (typeof MapScreen !== 'undefined') MapScreen.show();
       else if (window.MapScreen) window.MapScreen.show();
@@ -222,10 +268,37 @@ const Game = (() => {
     }
     s.appendChild(chatBtn);
 
-    const hint = document.createElement('div');
-    hint.className = 'muted blink';
-    hint.textContent = '▼ appuie sur START ▼';
-    s.appendChild(hint);
+    const row = document.createElement('div');
+    row.style.display = 'flex';
+    row.style.gap = '8px';
+    row.style.width = '100%';
+    row.style.maxWidth = '320px';
+
+    const achBtn = button('🏆 SUCCÈS', 'ghost', () => {
+      Sfx.unlock();
+      if (window.Achievements) Achievements.show();
+    });
+    achBtn.style.flex = '1';
+    achBtn.style.fontSize = '9px';
+    if (window.Achievements) {
+      const count = document.createElement('span');
+      count.className = 'tag';
+      count.style.display = 'block';
+      count.style.marginTop = '2px';
+      count.textContent = `${Achievements.unlockedCount()}/${Achievements.totalCount()}`;
+      achBtn.appendChild(count);
+    }
+
+    const optBtn = button('⚙️ OPTIONS', 'ghost', () => {
+      Sfx.unlock();
+      if (window.OptionsScreen) OptionsScreen.show();
+    });
+    optBtn.style.flex = '1';
+    optBtn.style.fontSize = '9px';
+
+    row.appendChild(achBtn);
+    row.appendChild(optBtn);
+    s.appendChild(row);
   }
 
   /* --- Générateur d'illustrations BD inter-niveaux --- */
@@ -425,8 +498,10 @@ const Game = (() => {
     s.appendChild(box);
 
     if (won) {
+      if (retryCount > 0 && window.Achievements) Achievements.setFlag('retried_and_won');
       retryCount = 0;
       markLevelCompleted(lvl.id);
+      if (window.Achievements) Achievements.checkNewUnlocks();
       const target = Math.min(100, STEP * (index + 1));
       await animateProgress(target);
 
@@ -456,6 +531,11 @@ const Game = (() => {
   /* ---------------- Démarrage ---------------- */
 
   function boot() {
+    // Doit tourner avant toute action du joueur : capture l'état déjà acquis
+    // pour ne pas déclencher de popup "succès débloqué" rétroactive au
+    // premier clic après la mise à jour.
+    if (window.Achievements) Achievements.ensureSeeded();
+
     levels.sort((a, b) => a.id - b.id);
     document.querySelector('.hud-label').textContent = TEXTES.jauge;
     buildSegbar();
@@ -499,7 +579,18 @@ const Game = (() => {
     // Synchro d'arrière-plan de la Boîte à Mots (badge "NEW!" + notifications)
     if (window.Chat && Chat.startBackgroundSync) Chat.startBackgroundSync();
 
-    showTitle();
+    // Passage à l'écran titre — après une éventuelle surprise (cinématique
+    // ponctuelle), jamais pendant, pour ne pas casser le moment. Le bandeau
+    // doux (installation/notifs) n'arrive lui aussi qu'une fois sur le
+    // titre, avec un temps mort pour ne pas débarquer comme un cheveu sur
+    // la soupe.
+    function toTitle() {
+      showTitle();
+      if (window.PwaHint) setTimeout(() => PwaHint.check(), 1800);
+    }
+
+    if (window.Surprise && Surprise.shouldShow()) Surprise.show(toTitle);
+    else toTitle();
   }
 
   const api = {

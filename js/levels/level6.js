@@ -316,6 +316,7 @@ Game.register((() => {
     (async () => {
       api.sfx('final');
       if (window.Game && Game.markLevelCompleted) Game.markLevelCompleted(7);
+      if (window.Achievements) Achievements.checkNewUnlocks();
       await api.setProgress(100);
 
       // Attendre un peu que l'animation principale se déroule
