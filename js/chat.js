@@ -102,6 +102,7 @@ const Chat = (() => {
   // Envoie un message via le Worker
   async function sendMessage(text) {
     if (!text || !text.trim() || !currentUser) return;
+    if (window.Achievements) Achievements.setFlag('chat_sent');
 
     if (!isConfigured()) {
       // Mode dégradé hors-ligne : conservé uniquement en local.

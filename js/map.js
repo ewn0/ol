@@ -102,6 +102,7 @@ const MapScreen = (() => {
   }
 
   function show() {
+    if (window.Achievements) Achievements.setFlag('map_seen');
     if (Game.clearScene) Game.clearScene();
     const stage = document.getElementById('stage');
     const hud = document.getElementById('hud');
