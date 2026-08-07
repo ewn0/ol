@@ -242,17 +242,6 @@ const Game = (() => {
     logo.textContent = TEXTES.titre;   // le saut de ligne est conservé (white-space: pre-line)
     s.appendChild(logo);
 
-    const sub = document.createElement('div');
-    sub.className = 'tag';
-    sub.textContent = TEXTES.sousTitre;
-    s.appendChild(sub);
-
-    const special = messageDuJour();
-    const box = document.createElement('div');
-    box.className = 'panel' + (special ? ' special-banner' : '');
-    multiline(special || TEXTES.accroche).forEach(p => box.appendChild(p));
-    s.appendChild(box);
-
     s.appendChild(button('🎮 AVENTURE LILLE', 'big ghost', () => {
       Sfx.unlock();
       if (typeof MapScreen !== 'undefined') MapScreen.show();

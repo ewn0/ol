@@ -16,9 +16,10 @@ const Surprise = (() => {
   ------------------------------------------------------------------ */
   const TITRE = 'EN ROUTE POUR PARIS';
   const MESSAGE = [
-    "Aujourd'hui : direction le Sacré-Cœur, avec toi.",
-    "Bien plus de marches qu'un niveau du jeu, et aucun bouton pour tricher.",
-    "Deuxième date. Toujours autant de papillons que la première.",
+    "Aujourd'hui, direction le Sacré-Cœur, avec toi.",
+    "J'ai beau avoir écrit ça à l'avance, je sais que je te trouve magnifique — puisque je te trouve tout le temps magnifique.",
+    "Ça me rend véritablement heureux d'avoir l'occasion de passer ces moments-là avec toi.",
+    "J'espère que cette journée à mes côtés te plaira.",
   ];
   const BOUTON = 'ON Y VA ➔';
   /* ------------------------------------------------------------------ */

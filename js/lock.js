@@ -6,7 +6,7 @@
 
    ▼▼▼ CHANGE LE MOT DE PASSE ICI ▼▼▼
 ------------------------------------------------------------------ */
-const LOCK_PASSWORD = 'lille';
+const LOCK_PASSWORD = '0108';
 /* ------------------------------------------------------------------ */
 
 const Lock = (() => {
@@ -26,7 +26,7 @@ const Lock = (() => {
       <div class="lock-canvas-box" id="lock-canvas-box"></div>
       <h2 style="color:var(--yellow)">ACCÈS PROTÉGÉ</h2>
       <div class="panel" style="width:100%;max-width:300px">
-        <input type="password" id="lock-input" class="chat-text-input" placeholder="Mot de passe" style="width:100%;text-align:center;box-sizing:border-box" autocomplete="off">
+        <input type="password" id="lock-input" class="chat-text-input" placeholder="Mot de passe" style="width:100%;text-align:center;box-sizing:border-box" autocomplete="off" inputmode="numeric" pattern="[0-9]*" maxlength="4">
         <div class="muted" id="lock-error" style="margin-top:8px;min-height:12px;color:var(--pink)"></div>
       </div>
       <button type="button" class="btn big alt" id="lock-btn">DÉVERROUILLER</button>
