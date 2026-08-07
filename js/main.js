@@ -299,11 +299,6 @@ const Game = (() => {
     row.appendChild(achBtn);
     row.appendChild(optBtn);
     s.appendChild(row);
-
-    const hint = document.createElement('div');
-    hint.className = 'muted blink';
-    hint.textContent = '▼ appuie sur START ▼';
-    s.appendChild(hint);
   }
 
   /* --- Générateur d'illustrations BD inter-niveaux --- */

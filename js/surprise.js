@@ -17,7 +17,7 @@ const Surprise = (() => {
   const TITRE = 'EN ROUTE POUR PARIS';
   const MESSAGE = [
     "Aujourd'hui, direction le Sacré-Cœur, avec toi.",
-    "J'ai beau avoir écrit ça à l'avance, je sais que je te trouve magnifique — puisque je te trouve tout le temps magnifique.",
+    "J'ai beau avoir écrit ça à l'avance, je sais que je te trouve magnifique et que je te regarde avec les yeux d'un enfant devant un magasin de bonbons — puisque je te trouve tout le temps splendide.",
     "Ça me rend véritablement heureux d'avoir l'occasion de passer ces moments-là avec toi.",
     "J'espère que cette journée à mes côtés te plaira.",
   ];
