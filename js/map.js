@@ -114,6 +114,7 @@ const MapScreen = (() => {
     s.style.paddingTop = '8px';
 
     s.innerHTML = `
+      <div class="tag" style="margin-bottom:2px">AVENTURE LILLE</div>
       <h2 style="color:var(--yellow);margin-bottom:4px">CARTE DE LILLE 🗺️</h2>
       <div class="map-canvas-box" id="map-canvas-box"></div>
       <div class="map-info-card" id="map-info-card"></div>

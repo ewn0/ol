@@ -1,7 +1,7 @@
 {
-  "name": "Opération Lille",
-  "short_name": "OpérationLille",
-  "description": "Le jeu vidéo rétro 8-bit d'Ewan & Élise à Lille",
+  "name": "Safeplace",
+  "short_name": "Safeplace",
+  "description": "Le refuge d'Ewan & Élise à Lille — souvenirs, mots doux, et l'Aventure Lille.",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#14122b",

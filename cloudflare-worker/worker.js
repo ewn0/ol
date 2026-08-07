@@ -1,5 +1,5 @@
 /* ============================================================
-   Worker Cloudflare — proxy pour "La Boîte à Mots" d'Opération Lille.
+   Worker Cloudflare — proxy pour "La Boîte à Mots" de Safeplace.
    Stocke les messages dans Cloudflare KV. Ne renvoie jamais de secret
    au client : le token GitHub n'existe plus côté navigateur.
 

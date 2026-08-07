@@ -1,14 +1,16 @@
 /* ============================================================
-   OPÉRATION LILLE — moteur de jeu
+   SAFEPLACE — moteur de l'app
    Gère : scènes, jauge globale, transitions, cycle intro/jeu/résultat.
-   Les niveaux s'enregistrent via Game.register({...}).
+   L'aventure narrative (Aventure Lille) s'enregistre en niveaux via
+   Game.register({...}) ; le reste de l'app (carte, album, boîte à mots,
+   succès, options) vit autour, dans les autres modules.
    ============================================================ */
 
 /* --- Textes génériques, faciles à retoucher --- */
 
 const TEXTES = {
-  titre:        'OPÉRATION\nLILLE',
-  sousTitre:    'Un jeu en 7 niveaux',
+  titre:        'SAFEPLACE',
+  sousTitre:    'Ewan & Élise, à Lille',
   jauge:        'Chargement du déménagement',   // libellé de la jauge globale
   accroche:     "Objectif : me faire venir à Lille.\nAucune pression. Enfin si, un peu.",
   start:        'START',
@@ -251,7 +253,7 @@ const Game = (() => {
     multiline(special || TEXTES.accroche).forEach(p => box.appendChild(p));
     s.appendChild(box);
 
-    s.appendChild(button('🗺️ CARTE DES NIVEAUX', 'big ghost', () => {
+    s.appendChild(button('🎮 AVENTURE LILLE', 'big ghost', () => {
       Sfx.unlock();
       if (typeof MapScreen !== 'undefined') MapScreen.show();
       else if (window.MapScreen) window.MapScreen.show();
