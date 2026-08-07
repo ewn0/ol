@@ -1,5 +1,5 @@
 /* Service Worker pour Safeplace (PWA) */
-const CACHE_NAME = 'safeplace-v1';
+const CACHE_NAME = 'safeplace-v2';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -8,6 +8,7 @@ const ASSETS_TO_CACHE = [
   './js/sprites.js',
   './js/achievements.js',
   './js/pwahint.js',
+  './js/surprise.js',
   './js/main.js',
   './js/album.js',
   './js/chat.js',

@@ -595,12 +595,18 @@ const Game = (() => {
     // Synchro d'arrière-plan de la Boîte à Mots (badge "NEW!" + notifications)
     if (window.Chat && Chat.startBackgroundSync) Chat.startBackgroundSync();
 
-    // Petit bandeau doux (installation écran d'accueil, puis notifs) —
-    // un temps mort après le chargement pour ne pas arriver comme un cheveu
-    // sur la soupe.
-    if (window.PwaHint) setTimeout(() => PwaHint.check(), 1800);
+    // Passage à l'écran titre — après une éventuelle surprise (cinématique
+    // ponctuelle), jamais pendant, pour ne pas casser le moment. Le bandeau
+    // doux (installation/notifs) n'arrive lui aussi qu'une fois sur le
+    // titre, avec un temps mort pour ne pas débarquer comme un cheveu sur
+    // la soupe.
+    function toTitle() {
+      showTitle();
+      if (window.PwaHint) setTimeout(() => PwaHint.check(), 1800);
+    }
 
-    showTitle();
+    if (window.Surprise && Surprise.shouldShow()) Surprise.show(toTitle);
+    else toTitle();
   }
 
   const api = {

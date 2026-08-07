@@ -222,12 +222,15 @@ const Chat = (() => {
 
     function renderMessages() {
       chatBox.innerHTML = '';
-      if (!messages || messages.length === 0) {
+      // Les entrées de Notre Journal (préfixe §J§, voir js/journal.js) ne
+      // sont pas des mots doux : elles ont leur propre écran, pas ici.
+      const visible = (messages || []).filter(m => !(m.text || '').startsWith('§J§'));
+      if (visible.length === 0) {
         chatBox.innerHTML = `<div class="muted" style="text-align:center;padding:20px">Aucun mot pour l'instant. Laisse le premier mot doux !</div>`;
         return;
       }
 
-      messages.forEach(msg => {
+      visible.forEach(msg => {
         const isEwn = msg.author === 'ewn';
         const card = document.createElement('div');
         card.className = `chat-msg-card ${isEwn ? 'ewn' : 'elise'}`;
@@ -319,6 +322,7 @@ const Chat = (() => {
     const lastRead = Number(localStorage.getItem('ol_last_read') || '0');
     if (!messages || messages.length === 0) return 0;
     return messages.filter(m => {
+      if ((m.text || '').startsWith('§J§')) return false;
       const msgTime = Number(m.id);
       return msgTime > lastRead && m.author !== currentUser;
     }).length;
